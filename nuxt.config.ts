@@ -1,0 +1,79 @@
+export default defineNuxtConfig({
+  compatibilityDate: '2024-11-01',
+  devtools: { enabled: true },
+  modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss', '@vite-pwa/nuxt'],
+  css: ['~/assets/css/main.css'],
+    typescript: {
+    strict: true,
+    typeCheck: false,
+  },
+  runtimeConfig: {
+    databaseUrl:
+      process.env.NUXT_DATABASE_URL ||
+      process.env.DATABASE_URL ||
+      'postgresql://tourenplan:tourenplan_dev@127.0.0.1:5432/tourenplan',
+    jwtSecret: process.env.NUXT_JWT_SECRET || 'dev-only-change-me-in-production',
+    orsApiKey: process.env.NUXT_ORS_API_KEY || '',
+    bootstrapAdminEmail: process.env.NUXT_BOOTSTRAP_ADMIN_EMAIL || 'admin@localhost.local',
+    bootstrapAdminPassword:
+      process.env.NUXT_BOOTSTRAP_ADMIN_PASSWORD ||
+      (process.env.NODE_ENV === 'development' ? 'admin-change-me' : ''),
+    public: {
+      appName: 'Tourenplan',
+    },
+  },
+  vite: {
+    optimizeDeps: {
+      include: ['maplibre-gl'],
+    },
+  },
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Tourenplan Fahrer',
+      short_name: 'Tourenplan',
+      description: 'Touren und Fahrplan für Busfahrer',
+      theme_color: '#0f172a',
+      background_color: '#0f172a',
+      display: 'standalone',
+      orientation: 'portrait',
+      start_url: '/driver',
+      scope: '/',
+      categories: ['business', 'productivity'],
+      icons: [
+        { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+        { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
+      ],
+    },
+    workbox: {
+      navigateFallback: '/driver',
+      globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+    },
+    devOptions: {
+      enabled: true,
+    },
+  },
+  app: {
+    head: {
+      title: 'Tourenplan',
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { name: 'description', content: 'Tourenplanung für Busunternehmen' },
+        { name: 'theme-color', content: '#0f172a' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', href: '/favicon.svg' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap',
+        },
+      ],
+    },
+  },
+})

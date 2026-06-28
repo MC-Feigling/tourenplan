@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased text-slate-100;
+    background-color: #0f172a;
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #0f172a;
+  }
+
+  :root {
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-primary: #f59e0b;
+    --color-text-1: #f1f5f9;
+    --color-text-2: #94a3b8;
+  }
+
+  input:not([type='checkbox']):not([type='radio']),
+  textarea {
+    caret-color: var(--color-primary);
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-text-1) !important;
+    caret-color: var(--color-primary);
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply rounded-2xl border border-white/10 bg-surface backdrop-blur-sm shadow-xl;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-touch min-w-touch items-center justify-center rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-brand-400 active:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex min-h-touch items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 active:bg-white/15;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-brand-500/50 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+  }
+}
