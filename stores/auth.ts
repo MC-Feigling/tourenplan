@@ -15,13 +15,15 @@ export const useAuthStore = defineStore('auth', () => {
     return ROLE_HOME_PATH[user.value.role]
   })
 
+  function authFetch() {
+    return import.meta.server ? useRequestFetch() : $fetch
+  }
+
   async function fetchMe() {
-    const forwardCookies = import.meta.server ? useRequestHeaders(['cookie']) : {}
     loading.value = true
     error.value = null
     try {
-      const res = await $fetch<{ user: PublicUser | null }>('/api/auth/me', {
-        headers: forwardCookies,
+      const res = await authFetch()<{ user: PublicUser | null }>('/api/auth/me', {
         credentials: 'include',
       })
       user.value = res.user
@@ -53,11 +55,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
-    const forwardCookies = import.meta.server ? useRequestHeaders(['cookie']) : {}
     try {
-      await $fetch('/api/auth/logout', {
+      await authFetch()('/api/auth/logout', {
         method: 'POST',
-        headers: forwardCookies,
         credentials: 'include',
       })
     } finally {

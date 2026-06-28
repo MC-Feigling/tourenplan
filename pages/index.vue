@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const auth = useAuthStore()
-await auth.fetchMe()
+await callOnce('auth:init', () => auth.fetchMe())
 
 if (auth.user) {
   await navigateTo(auth.homePath)

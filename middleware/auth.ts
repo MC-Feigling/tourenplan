@@ -2,7 +2,7 @@ import type { UserRole } from '~/shared/constants/roles'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore()
-  if (!auth.user) {
+  if (!auth.user && import.meta.client) {
     await auth.fetchMe()
   }
   if (!auth.user) {

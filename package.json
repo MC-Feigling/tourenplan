@@ -32,7 +32,7 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^22.15.29",
     "@vite-pwa/nuxt": "^1.0.4",
-    "drizzle-kit": "^0.31.1",
+    "drizzle-kit": "^0.31.10",
     "nuxt": "^4.4.2",
     "typescript": "^5.8.3",
     "vitest": "^3.2.1",
