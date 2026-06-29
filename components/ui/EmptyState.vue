@@ -3,6 +3,10 @@ defineProps<{
   title: string
   description?: string
 }>()
+
+const slots = defineSlots<{
+  action?: () => unknown
+}>()
 </script>
 
 <template>
@@ -12,7 +16,7 @@ defineProps<{
     </div>
     <h2 class="text-lg font-semibold text-white">{{ title }}</h2>
     <p v-if="description" class="mt-2 max-w-sm text-sm text-slate-400">{{ description }}</p>
-    <div v-if="$slots.action" class="mt-6">
+    <div v-if="slots.action" class="mt-6">
       <slot name="action" />
     </div>
   </div>

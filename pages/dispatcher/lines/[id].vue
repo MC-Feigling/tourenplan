@@ -36,7 +36,8 @@ const saveError = ref<string | null>(null)
 const saving = ref(false)
 
 if (!isNew.value) {
-  const res = await $fetch<{ item: typeof form.value & { id: string } }>(`/api/line-templates/${id.value}`, {
+  const apiFetch = useApiFetch()
+  const res = await apiFetch<{ item: typeof form.value & { id: string } }>(`/api/line-templates/${id.value}`, {
     credentials: 'include',
   })
   form.value = {
@@ -73,14 +74,16 @@ async function onSave() {
   saving.value = true
   try {
     if (isNew.value) {
-      const res = await $fetch<{ item: { id: string } }>('/api/line-templates', {
+      const apiFetch = useApiFetch()
+      const res = await apiFetch<{ item: { id: string } }>('/api/line-templates', {
         method: 'POST',
         body: form.value,
         credentials: 'include',
       })
       await router.replace(`/dispatcher/lines/${res.item.id}`)
     } else {
-      await $fetch(`/api/line-templates/${id.value}`, {
+      const apiFetch = useApiFetch()
+      await apiFetch(`/api/line-templates/${id.value}`, {
         method: 'PATCH',
         body: form.value,
         credentials: 'include',

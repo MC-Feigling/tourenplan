@@ -14,6 +14,8 @@ const emit = defineEmits<{
 }>()
 
 const routing = useRoutingApi()
+const routingLoading = routing.loading
+const routingError = routing.error
 const open = ref(false)
 const results = ref<GeocodeResult[]>([])
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
@@ -93,6 +95,7 @@ function onBlur() {
         </button>
       </li>
     </ul>
-    <p v-if="routing.loading" class="mt-1 text-xs text-slate-500">Suche…</p>
+    <p v-if="routingLoading" class="mt-1 text-xs text-slate-500">Suche…</p>
+    <p v-else-if="routingError" class="mt-1 text-xs text-red-300">{{ routingError }}</p>
   </div>
 </template>

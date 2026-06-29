@@ -10,10 +10,11 @@ export function useDriverApi() {
   const error = ref<string | null>(null)
 
   async function listRange(from: string, to: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ items: DriverTour[] }>('/api/driver/tours', {
+      return await apiFetch<{ items: DriverTour[] }>('/api/driver/tours', {
         query: { from, to },
         credentials: 'include',
       })
@@ -26,10 +27,11 @@ export function useDriverApi() {
   }
 
   async function get(id: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: DriverTour }>(`/api/driver/tours/${id}`, {
+      return await apiFetch<{ item: DriverTour }>(`/api/driver/tours/${id}`, {
         credentials: 'include',
       })
     } catch (e: unknown) {
@@ -41,10 +43,11 @@ export function useDriverApi() {
   }
 
   async function updateStatus(id: string, status: TourStatus) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: DriverTour }>(`/api/driver/tours/${id}/status`, {
+      return await apiFetch<{ item: DriverTour }>(`/api/driver/tours/${id}/status`, {
         method: 'PATCH',
         body: { status },
         credentials: 'include',

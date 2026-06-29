@@ -9,10 +9,11 @@ export function useRoutingApi() {
   const error = ref<string | null>(null)
 
   async function geocode(query: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ items: GeocodeResult[] }>('/api/routing/geocode', {
+      return await apiFetch<{ items: GeocodeResult[] }>('/api/routing/geocode', {
         query: { q: query },
         credentials: 'include',
       })
@@ -28,10 +29,11 @@ export function useRoutingApi() {
     coordinates: Array<{ lat: number; lng: number }>,
     profile: OrsRoutingProfile = DEFAULT_ROUTING_PROFILE,
   ) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ result: DirectionsResult }>('/api/routing/directions', {
+      return await apiFetch<{ result: DirectionsResult }>('/api/routing/directions', {
         method: 'POST',
         body: { coordinates, profile },
         credentials: 'include',

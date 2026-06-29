@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { tours } from '../../database/schema'
 import { nowEpoch, requireDispatchRead, requireDispatchWrite } from '../../utils/access'
 import { useDb } from '../../utils/db'
+import { loadTourWithStops, propagateLineTourWeekUpdates } from '../../utils/tourService'
 import { resolveTourCompliance } from '../../utils/tourHelpers'
 import { tourUpdateSchema } from '../../../shared/schemas/tours'
 
@@ -55,6 +56,16 @@ export default defineEventHandler(async (event) => {
         updatedAt: nowEpoch(),
       })
       .where(eq(tours.id, id))
+
+    const lineTemplateId = existing.lineTemplateId
+    if (existing.type === 'line' && lineTemplateId && body.status !== undefined) {
+      await propagateLineTourWeekUpdates(
+        id,
+        lineTemplateId,
+        body.date ?? existing.date,
+        { status: body.status },
+      )
+    }
 
     const item = await loadTourWithStops(id)
     return { item }

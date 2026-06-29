@@ -15,15 +15,12 @@ export const useAuthStore = defineStore('auth', () => {
     return ROLE_HOME_PATH[user.value.role]
   })
 
-  function authFetch() {
-    return import.meta.server ? useRequestFetch() : $fetch
-  }
-
   async function fetchMe() {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      const res = await authFetch()<{ user: PublicUser | null }>('/api/auth/me', {
+      const res = await apiFetch<{ user: PublicUser | null }>('/api/auth/me', {
         credentials: 'include',
       })
       user.value = res.user
@@ -55,8 +52,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
+    const apiFetch = useApiFetch()
     try {
-      await authFetch()('/api/auth/logout', {
+      await apiFetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       })

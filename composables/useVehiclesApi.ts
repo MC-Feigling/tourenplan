@@ -64,10 +64,11 @@ export function useVehiclesApi() {
   const error = ref<string | null>(null)
 
   async function list() {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ items: PublicVehicle[] }>('/api/vehicles', { credentials: 'include' })
+      return await apiFetch<{ items: PublicVehicle[] }>('/api/vehicles', { credentials: 'include' })
     } catch (e: unknown) {
       error.value = extractError(e)
       throw e
@@ -77,10 +78,11 @@ export function useVehiclesApi() {
   }
 
   async function get(id: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: PublicVehicle }>(`/api/vehicles/${id}`, {
+      return await apiFetch<{ item: PublicVehicle }>(`/api/vehicles/${id}`, {
         credentials: 'include',
       })
     } catch (e: unknown) {
@@ -92,10 +94,11 @@ export function useVehiclesApi() {
   }
 
   async function create(form: VehicleFormState) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: PublicVehicle }>('/api/vehicles', {
+      return await apiFetch<{ item: PublicVehicle }>('/api/vehicles', {
         method: 'POST',
         body: formToVehiclePayload(form),
         credentials: 'include',
@@ -109,10 +112,11 @@ export function useVehiclesApi() {
   }
 
   async function update(id: string, form: VehicleFormState) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: PublicVehicle }>(`/api/vehicles/${id}`, {
+      return await apiFetch<{ item: PublicVehicle }>(`/api/vehicles/${id}`, {
         method: 'PATCH',
         body: formToVehiclePayload(form),
         credentials: 'include',
@@ -126,10 +130,11 @@ export function useVehiclesApi() {
   }
 
   async function remove(id: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      await $fetch(`/api/vehicles/${id}`, { method: 'DELETE', credentials: 'include' })
+      await apiFetch(`/api/vehicles/${id}`, { method: 'DELETE', credentials: 'include' })
     } catch (e: unknown) {
       error.value = extractError(e)
       throw e

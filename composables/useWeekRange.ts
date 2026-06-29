@@ -1,24 +1,14 @@
-export function toIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
+import { WEEKDAY_LABELS, type IsoWeekday } from '~/shared/constants/tours'
+import {
+  addDays,
+  formatWeekdayShortDateLabel,
+  formatWeekRangeLabel,
+  getMondayOfWeek,
+  parseIsoDate,
+  toIsoDate,
+} from '~/shared/utils/time'
 
-export function parseIsoDate(value: string): Date {
-  return new Date(`${value}T12:00:00`)
-}
-
-export function addDays(isoDate: string, days: number): string {
-  const d = parseIsoDate(isoDate)
-  d.setDate(d.getDate() + days)
-  return toIsoDate(d)
-}
-
-export function getMondayOfWeek(isoDate: string): string {
-  const d = parseIsoDate(isoDate)
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  d.setDate(d.getDate() + diff)
-  return toIsoDate(d)
-}
+export { toIsoDate, parseIsoDate, addDays, getMondayOfWeek } from '~/shared/utils/time'
 
 export function useWeekRange() {
   const anchorDate = ref(toIsoDate(new Date()))
@@ -26,12 +16,7 @@ export function useWeekRange() {
   const weekStart = computed(() => getMondayOfWeek(anchorDate.value))
   const weekEnd = computed(() => addDays(weekStart.value, 6))
 
-  const weekLabel = computed(() => {
-    const start = parseIsoDate(weekStart.value)
-    const end = parseIsoDate(weekEnd.value)
-    const fmt = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short' })
-    return `${fmt.format(start)} – ${fmt.format(end)} ${end.getFullYear()}`
-  })
+  const weekLabel = computed(() => formatWeekRangeLabel(weekStart.value, weekEnd.value))
 
   const weekDays = computed(() =>
     Array.from({ length: 7 }, (_, i) => {
@@ -41,7 +26,7 @@ export function useWeekRange() {
       return {
         date,
         weekday,
-        label: new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(d),
+        label: formatWeekdayShortDateLabel(date, WEEKDAY_LABELS[weekday as IsoWeekday]),
         isToday: date === toIsoDate(new Date()),
       }
     }),

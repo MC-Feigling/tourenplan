@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, lte } from 'drizzle-orm'
+import { and, asc, eq, gte, lte, ne } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { tourStops, tours } from '../database/schema'
 import { getDefaultDepotId, nowEpoch } from './access'
@@ -8,8 +8,16 @@ import {
   resolveTourCompliance,
   toPublicTour,
 } from './tourHelpers'
+import type { TourStatus } from '../../shared/constants/tours'
+import { getWeekRangeForDate } from '../../shared/utils/time'
 import type { z } from 'zod'
 import type { tourCreateSchema, tourStopInputSchema } from '../../shared/schemas/tours'
+
+type LineTourWeekFields = {
+  status?: TourStatus
+  driverId?: string | null
+  vehicleId?: string | null
+}
 
 type StopInput = z.infer<typeof tourStopInputSchema>
 type TourCreateInput = z.infer<typeof tourCreateSchema>
@@ -82,6 +90,37 @@ export async function createTourRecord(body: TourCreateInput) {
   }
 
   return loadTourWithStops(id)
+}
+
+export async function propagateLineTourWeekUpdates(
+  sourceTourId: string,
+  lineTemplateId: string,
+  tourDate: string,
+  fields: LineTourWeekFields,
+): Promise<void> {
+  const keys = Object.keys(fields) as Array<keyof LineTourWeekFields>
+  if (keys.length === 0) return
+
+  const { from, to } = getWeekRangeForDate(tourDate)
+  const { db } = await useDb()
+  const now = nowEpoch()
+
+  await db
+    .update(tours)
+    .set({
+      ...(fields.status !== undefined ? { status: fields.status } : {}),
+      ...(fields.driverId !== undefined ? { driverId: fields.driverId } : {}),
+      ...(fields.vehicleId !== undefined ? { vehicleId: fields.vehicleId } : {}),
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(tours.lineTemplateId, lineTemplateId),
+        gte(tours.date, from),
+        lte(tours.date, to),
+        ne(tours.id, sourceTourId),
+      ),
+    )
 }
 
 export async function listToursInRange(from: string, to: string) {

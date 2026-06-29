@@ -17,7 +17,8 @@ export function useAssignmentApi() {
   const error = ref<string | null>(null)
 
   async function loadResources(from: string, to: string) {
-    return await $fetch<{
+    const apiFetch = useApiFetch()
+    return await apiFetch<{
       drivers: Array<{
         id: string
         fullName: string
@@ -49,6 +50,7 @@ export function useAssignmentApi() {
     form: TourFormState,
     options?: { tourId?: string },
   ) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
@@ -56,7 +58,7 @@ export function useAssignmentApi() {
         form.type === 'line' && form.lineLengthKm ? Number(form.lineLengthKm) : null
       const complianceProfile = resolveComplianceProfile(form.type, lineLengthKm)
 
-      return await $fetch<AssignmentCheckResult>('/api/assignment/validate', {
+      return await apiFetch<AssignmentCheckResult>('/api/assignment/validate', {
         method: 'POST',
         body: {
           tourId: options?.tourId,

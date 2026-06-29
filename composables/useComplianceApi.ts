@@ -10,6 +10,7 @@ export function useComplianceApi() {
     form: TourFormState,
     options?: { tourId?: string; driverId?: string | null },
   ) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
@@ -17,7 +18,7 @@ export function useComplianceApi() {
         form.type === 'line' && form.lineLengthKm ? Number(form.lineLengthKm) : null
       const complianceProfile = resolveComplianceProfile(form.type, lineLengthKm)
 
-      return await $fetch<{ result: ComplianceValidationResult }>('/api/compliance/validate', {
+      return await apiFetch<{ result: ComplianceValidationResult }>('/api/compliance/validate', {
         method: 'POST',
         body: {
           tourId: options?.tourId,

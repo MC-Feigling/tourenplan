@@ -20,6 +20,8 @@ const week = useWeekRange()
 
 const api = useDriverApi()
 
+const driverApiError = api.error
+
 const today = toIsoDate(new Date())
 
 
@@ -106,7 +108,7 @@ useHead({ title: 'Meine Touren' })
 
     <div
 
-      v-else-if="error || api.error"
+      v-else-if="error || driverApiError"
 
       class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
 
@@ -114,7 +116,7 @@ useHead({ title: 'Meine Touren' })
 
     >
 
-      {{ api.error ?? 'Touren konnten nicht geladen werden' }}
+      {{ driverApiError ?? 'Touren konnten nicht geladen werden' }}
 
     </div>
 

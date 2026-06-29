@@ -98,10 +98,11 @@ export function useToursApi() {
   const error = ref<string | null>(null)
 
   async function listRange(from: string, to: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ items: PublicTour[] }>('/api/tours', {
+      return await apiFetch<{ items: PublicTour[] }>('/api/tours', {
         query: { from, to },
         credentials: 'include',
       })
@@ -114,10 +115,11 @@ export function useToursApi() {
   }
 
   async function get(id: string) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: PublicTour }>(`/api/tours/${id}`, { credentials: 'include' })
+      return await apiFetch<{ item: PublicTour }>(`/api/tours/${id}`, { credentials: 'include' })
     } catch (e: unknown) {
       error.value = extractError(e)
       throw e
@@ -127,10 +129,11 @@ export function useToursApi() {
   }
 
   async function create(form: TourFormState) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: PublicTour }>('/api/tours', {
+      return await apiFetch<{ item: PublicTour }>('/api/tours', {
         method: 'POST',
         body: formToTourPayload(form),
         credentials: 'include',
@@ -144,6 +147,7 @@ export function useToursApi() {
   }
 
   async function update(id: string, form: Partial<TourFormState>) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
@@ -158,7 +162,7 @@ export function useToursApi() {
       if (form.driverId !== undefined) body.driverId = form.driverId || null
       if (form.vehicleId !== undefined) body.vehicleId = form.vehicleId || null
       if (form.notes !== undefined) body.notes = form.notes
-      return await $fetch<{ item: PublicTour }>(`/api/tours/${id}`, {
+      return await apiFetch<{ item: PublicTour }>(`/api/tours/${id}`, {
         method: 'PATCH',
         body,
         credentials: 'include',
@@ -172,10 +176,11 @@ export function useToursApi() {
   }
 
   async function saveStops(id: string, stops: TourStopFormRow[]) {
+    const apiFetch = useApiFetch()
     loading.value = true
     error.value = null
     try {
-      return await $fetch<{ item: PublicTour }>(`/api/tours/${id}/stops`, {
+      return await apiFetch<{ item: PublicTour }>(`/api/tours/${id}/stops`, {
         method: 'PUT',
         body: { stops },
         credentials: 'include',
@@ -189,17 +194,20 @@ export function useToursApi() {
   }
 
   async function remove(id: string) {
-    await $fetch(`/api/tours/${id}`, { method: 'DELETE', credentials: 'include' })
+    const apiFetch = useApiFetch()
+    await apiFetch(`/api/tours/${id}`, { method: 'DELETE', credentials: 'include' })
   }
 
   async function listLineTemplates() {
-    return await $fetch<{ items: PublicLineTemplate[] }>('/api/line-templates', {
+    const apiFetch = useApiFetch()
+    return await apiFetch<{ items: PublicLineTemplate[] }>('/api/line-templates', {
       credentials: 'include',
     })
   }
 
   async function generateFromTemplate(templateId: string, from: string, to: string) {
-    return await $fetch<{ created: PublicTour[]; count: number }>(
+    const apiFetch = useApiFetch()
+    return await apiFetch<{ created: PublicTour[]; count: number }>(
       `/api/line-templates/${templateId}/generate`,
       { method: 'POST', body: { from, to }, credentials: 'include' },
     )
