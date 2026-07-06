@@ -18,15 +18,21 @@ const saveError = ref<string | null>(null)
 const saving = ref(false)
 const deleting = ref(false)
 
-async function load() {
-  if (isNew.value) return
-  const res = await api.get(id.value)
-  form.value = vehicleToForm(res.item)
-}
+const { data, pending, error, refresh } = await useAsyncData(
+  () => `admin-vehicle-${id.value}`,
+  () => (isNew.value ? Promise.resolve(null) : api.get(id.value)),
+  { watch: [id] },
+)
 
-if (!isNew.value) {
-  await load()
-}
+watch(
+  data,
+  (res) => {
+    if (res) {
+      form.value = vehicleToForm(res.item)
+    }
+  },
+  { immediate: true },
+)
 
 const pageTitle = computed(() =>
   isNew.value ? 'Fahrzeug anlegen' : form.value.name || 'Fahrzeug',
@@ -43,7 +49,7 @@ async function onSave() {
       await router.replace(`/admin/vehicles/${res.item.id}`)
     } else {
       await api.update(id.value, form.value)
-      await load()
+      await refresh()
     }
   } catch {
     saveError.value = api.error.value
@@ -71,35 +77,48 @@ async function onDelete() {
   <div class="space-y-6">
     <AdminPageHeader :title="pageTitle" :description="isNew ? 'Neues Fahrzeug erfassen' : 'Fahrzeugdaten bearbeiten'">
       <template #actions>
-        <NuxtLink to="/admin/vehicles" class="btn-ghost no-underline">← Zurück</NuxtLink>
+        <UButton to="/admin/vehicles" variant="ghost" color="neutral">← Zurück</UButton>
       </template>
     </AdminPageHeader>
 
-    <div
-      v-if="saveError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-      role="alert"
-    >
-      {{ saveError }}
-    </div>
+    <div v-if="!isNew && pending && !data" class="text-sm text-slate-400">Laden…</div>
 
-    <div class="surface-card p-5 sm:p-6">
-      <AdminVehicleForm v-model="form" @submit="onSave">
-        <template #actions>
-          <button type="submit" class="btn-primary" :disabled="saving">
-            {{ saving ? 'Speichern…' : 'Speichern' }}
-          </button>
-          <button
-            v-if="!isNew"
-            type="button"
-            class="btn-ghost !text-red-300"
-            :disabled="deleting"
-            @click="onDelete"
-          >
-            Löschen
-          </button>
-        </template>
-      </AdminVehicleForm>
-    </div>
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="subtle"
+      title="Fahrzeug konnte nicht geladen werden"
+      role="alert"
+    />
+
+    <template v-else>
+      <UAlert
+        v-if="saveError"
+        color="error"
+        variant="subtle"
+        :title="saveError"
+        role="alert"
+      />
+
+      <UiAppCard body-class="p-5 sm:p-6">
+        <AdminVehicleForm v-model="form" @submit="onSave">
+          <template #actions>
+            <UButton type="submit" color="primary" :loading="saving">
+              Speichern
+            </UButton>
+            <UButton
+              v-if="!isNew"
+              type="button"
+              variant="ghost"
+              color="error"
+              :loading="deleting"
+              @click="onDelete"
+            >
+              Löschen
+            </UButton>
+          </template>
+        </AdminVehicleForm>
+      </UiAppCard>
+    </template>
   </div>
 </template>

@@ -49,9 +49,9 @@ async function onLogout() {
 
       <div v-if="auth.user" class="flex items-center gap-3">
         <span class="hidden text-xs text-slate-400 sm:block">{{ auth.user.displayName }}</span>
-        <button type="button" class="btn-ghost !min-h-9 !px-3 !py-1.5 text-xs" @click="onLogout">
+        <UButton variant="ghost" color="neutral" size="xs" @click="onLogout">
           Abmelden
-        </button>
+        </UButton>
       </div>
     </div>
   </header>

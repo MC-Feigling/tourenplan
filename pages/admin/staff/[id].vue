@@ -23,16 +23,22 @@ const saveError = ref<string | null>(null)
 const saving = ref(false)
 const deleting = ref(false)
 
-async function load() {
-  if (isNew.value) return
-  const res = await api.get(id.value)
-  form.value = staffToForm(res.item)
-  leaveRequests.value = res.leaveRequests
-}
+const { data, pending, error, refresh } = await useAsyncData(
+  () => `admin-staff-${id.value}`,
+  () => (isNew.value ? Promise.resolve(null) : api.get(id.value)),
+  { watch: [id] },
+)
 
-if (!isNew.value) {
-  await load()
-}
+watch(
+  data,
+  (res) => {
+    if (res) {
+      form.value = staffToForm(res.item)
+      leaveRequests.value = res.leaveRequests
+    }
+  },
+  { immediate: true },
+)
 
 const pageTitle = computed(() =>
   isNew.value ? 'Mitarbeiter anlegen' : `${form.value.firstName} ${form.value.lastName}`.trim() || 'Mitarbeiter',
@@ -49,7 +55,7 @@ async function onSave() {
       await router.replace(`/admin/staff/${res.item.id}`)
     } else {
       await api.update(id.value, form.value)
-      await load()
+      await refresh()
     }
   } catch {
     saveError.value = api.error.value
@@ -95,93 +101,109 @@ async function onRemoveLeave(leaveId: string) {
   <div class="space-y-6">
     <AdminPageHeader :title="pageTitle" :description="isNew ? 'Neuen Mitarbeiter erfassen' : 'Stammdaten bearbeiten'">
       <template #actions>
-        <NuxtLink to="/admin/staff" class="btn-ghost no-underline">← Zurück</NuxtLink>
+        <UButton to="/admin/staff" variant="ghost" color="neutral">← Zurück</UButton>
       </template>
     </AdminPageHeader>
 
-    <div
-      v-if="saveError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+    <div v-if="!isNew && pending && !data" class="text-sm text-slate-400">Laden…</div>
+
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="subtle"
+      title="Mitarbeiter konnte nicht geladen werden"
       role="alert"
-    >
-      {{ saveError }}
-    </div>
+    />
 
-    <div class="surface-card p-5 sm:p-6">
-      <AdminStaffForm v-model="form" @submit="onSave">
-        <template #actions>
-          <button type="submit" class="btn-primary" :disabled="saving">
-            {{ saving ? 'Speichern…' : 'Speichern' }}
-          </button>
-          <button
-            v-if="!isNew"
-            type="button"
-            class="btn-ghost !text-red-300"
-            :disabled="deleting"
-            @click="onDelete"
-          >
-            Löschen
-          </button>
-        </template>
-      </AdminStaffForm>
-    </div>
+    <template v-else>
+      <UAlert
+        v-if="saveError"
+        color="error"
+        variant="subtle"
+        :title="saveError"
+        role="alert"
+      />
 
-    <section v-if="!isNew" class="space-y-4">
-      <div class="flex items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold text-white">Abwesenheit</h2>
-        <button type="button" class="btn-ghost" @click="showLeaveForm = !showLeaveForm">
-          {{ showLeaveForm ? 'Abbrechen' : '+ Eintragen' }}
-        </button>
-      </div>
+      <UiAppCard body-class="p-5 sm:p-6">
+        <AdminStaffForm v-model="form" @submit="onSave">
+          <template #actions>
+            <UButton type="submit" color="primary" :loading="saving">
+              Speichern
+            </UButton>
+            <UButton
+              v-if="!isNew"
+              type="button"
+              variant="ghost"
+              color="error"
+              :loading="deleting"
+              @click="onDelete"
+            >
+              Löschen
+            </UButton>
+          </template>
+        </AdminStaffForm>
+      </UiAppCard>
 
-      <div v-if="showLeaveForm" class="surface-card p-5">
-        <form class="grid gap-4 sm:grid-cols-2" @submit.prevent="onAddLeave">
-          <div class="space-y-1.5">
-            <label class="block text-xs font-medium text-slate-400">Von</label>
-            <input v-model="leaveForm.startDate" type="date" required class="input-field">
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs font-medium text-slate-400">Bis</label>
-            <input v-model="leaveForm.endDate" type="date" required class="input-field">
-          </div>
-          <div class="space-y-1.5 sm:col-span-2">
-            <label class="block text-xs font-medium text-slate-400">Art</label>
-            <select v-model="leaveForm.type" class="input-field">
-              <option value="vacation">Urlaub</option>
-              <option value="sick">Krank</option>
-              <option value="other">Sonstiges</option>
-            </select>
-          </div>
-          <div class="space-y-1.5 sm:col-span-2">
-            <label class="block text-xs font-medium text-slate-400">Notiz</label>
-            <input v-model="leaveForm.note" class="input-field" placeholder="optional">
-          </div>
-          <div class="sm:col-span-2">
-            <button type="submit" class="btn-primary">Abwesenheit speichern</button>
-          </div>
-        </form>
-      </div>
+      <section v-if="!isNew" class="space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold text-white">Abwesenheit</h2>
+          <UButton variant="ghost" color="neutral" @click="showLeaveForm = !showLeaveForm">
+            {{ showLeaveForm ? 'Abbrechen' : '+ Eintragen' }}
+          </UButton>
+        </div>
 
-      <div v-if="leaveRequests.length === 0" class="text-sm text-slate-500">Keine Abwesenheiten eingetragen.</div>
+        <UiAppCard v-if="showLeaveForm">
+          <form class="grid gap-4 sm:grid-cols-2" @submit.prevent="onAddLeave">
+            <UFormField label="Von" name="startDate">
+              <UInput v-model="leaveForm.startDate" type="date" required class="w-full" />
+            </UFormField>
+            <UFormField label="Bis" name="endDate">
+              <UInput v-model="leaveForm.endDate" type="date" required class="w-full" />
+            </UFormField>
+            <UFormField label="Art" name="type" class="sm:col-span-2">
+              <USelect
+                v-model="leaveForm.type"
+                :items="[
+                  { label: 'Urlaub', value: 'vacation' },
+                  { label: 'Krank', value: 'sick' },
+                  { label: 'Sonstiges', value: 'other' },
+                ]"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField label="Notiz" name="note" class="sm:col-span-2">
+              <UInput v-model="leaveForm.note" placeholder="optional" class="w-full" />
+            </UFormField>
+            <div class="sm:col-span-2">
+              <UButton type="submit" color="primary">Abwesenheit speichern</UButton>
+            </div>
+          </form>
+        </UiAppCard>
 
-      <ul v-else class="space-y-2">
-        <li
-          v-for="leave in leaveRequests"
-          :key="leave.id"
-          class="surface-card flex items-center justify-between gap-3 px-4 py-3"
-        >
-          <div>
-            <p class="text-sm font-medium text-white">
-              {{ LEAVE_TYPE_LABELS[leave.type] }}
-              <span class="font-normal text-slate-400">· {{ leave.startDate }} – {{ leave.endDate }}</span>
-            </p>
-            <p v-if="leave.note" class="mt-0.5 text-xs text-slate-500">{{ leave.note }}</p>
-          </div>
-          <button type="button" class="btn-ghost !min-h-9 !px-3 !py-1.5 text-xs !text-red-300" @click="onRemoveLeave(leave.id)">
-            Entfernen
-          </button>
-        </li>
-      </ul>
-    </section>
+        <div v-if="leaveRequests.length === 0" class="text-sm text-slate-500">Keine Abwesenheiten eingetragen.</div>
+
+        <ul v-else class="space-y-2">
+          <li v-for="leave in leaveRequests" :key="leave.id">
+            <UiAppCard body-class="flex items-center justify-between gap-3 px-4 py-3">
+              <div>
+                <p class="text-sm font-medium text-white">
+                  {{ LEAVE_TYPE_LABELS[leave.type] }}
+                  <span class="font-normal text-slate-400">· {{ leave.startDate }} – {{ leave.endDate }}</span>
+                </p>
+                <p v-if="leave.note" class="mt-0.5 text-xs text-slate-500">{{ leave.note }}</p>
+              </div>
+              <UButton
+                variant="ghost"
+                color="error"
+                size="xs"
+                @click="onRemoveLeave(leave.id)"
+              >
+                Entfernen
+              </UButton>
+            </UiAppCard>
+          </li>
+        </ul>
+      </section>
+    </template>
   </div>
 </template>

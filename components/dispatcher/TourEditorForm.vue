@@ -16,64 +16,77 @@ const emit = defineEmits<{
   save: []
   delete: []
 }>()
+
+const tourTypeItems = TOUR_TYPES.map((t) => ({ label: TOUR_TYPE_LABELS[t], value: t }))
+const tourStatusItems = TOUR_STATUSES.map((s) => ({ label: TOUR_STATUS_LABELS[s], value: s }))
 </script>
 
 <template>
   <div class="grid gap-6 lg:grid-cols-5">
-    <div class="surface-card space-y-4 p-5 lg:col-span-2">
+    <UiAppCard body-class="space-y-4 p-5 lg:col-span-2">
       <h2 class="text-sm font-semibold text-white">Stammdaten</h2>
 
-      <div class="space-y-1.5">
-        <label class="block text-xs text-slate-400">Typ</label>
-        <select v-model="form.type" :disabled="!canEdit || !isNew" class="input-field">
-          <option v-for="t in TOUR_TYPES" :key="t" :value="t">{{ TOUR_TYPE_LABELS[t] }}</option>
-        </select>
-      </div>
+      <UFormField label="Typ" name="type">
+        <USelect
+          v-model="form.type"
+          :items="tourTypeItems"
+          :disabled="!canEdit || !isNew"
+          class="w-full"
+        />
+      </UFormField>
 
-      <div class="space-y-1.5">
-        <label class="block text-xs text-slate-400">Name</label>
-        <input v-model="form.name" required :disabled="!canEdit" class="input-field">
-      </div>
+      <UFormField label="Name" name="name">
+        <UInput v-model="form.name" required :disabled="!canEdit" class="w-full" />
+      </UFormField>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Datum</label>
-          <input v-model="form.date" type="date" required :disabled="!canEdit" class="input-field">
-        </div>
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Status</label>
-          <select v-model="form.status" :disabled="!canEdit" class="input-field">
-            <option v-for="s in TOUR_STATUSES" :key="s" :value="s">{{ TOUR_STATUS_LABELS[s] }}</option>
-          </select>
-        </div>
+        <UFormField label="Datum" name="date">
+          <UInput v-model="form.date" type="date" required :disabled="!canEdit" class="w-full" />
+        </UFormField>
+        <UFormField label="Status" name="status">
+          <USelect
+            v-model="form.status"
+            :items="tourStatusItems"
+            :disabled="!canEdit"
+            class="w-full"
+          />
+        </UFormField>
       </div>
 
-      <div v-if="form.type === 'line'" class="space-y-1.5">
-        <label class="block text-xs text-slate-400">Linienlänge (km)</label>
-        <input v-model="form.lineLengthKm" type="number" min="0" step="0.1" :disabled="!canEdit" class="input-field">
-      </div>
+      <UFormField v-if="form.type === 'line'" label="Linienlänge (km)" name="lineLengthKm">
+        <UInput
+          v-model="form.lineLengthKm"
+          type="number"
+          min="0"
+          step="0.1"
+          :disabled="!canEdit"
+          class="w-full"
+        />
+      </UFormField>
 
-      <div v-if="complianceProfile" class="rounded-xl border border-brand-500/20 bg-brand-500/10 px-3 py-2 text-xs text-brand-200">
-        Compliance: {{ COMPLIANCE_PROFILE_LABELS[complianceProfile as keyof typeof COMPLIANCE_PROFILE_LABELS] }}
-      </div>
+      <UAlert
+        v-if="complianceProfile"
+        color="primary"
+        variant="subtle"
+        :title="`Compliance: ${COMPLIANCE_PROFILE_LABELS[complianceProfile as keyof typeof COMPLIANCE_PROFILE_LABELS]}`"
+      />
 
-      <div class="space-y-1.5">
-        <label class="block text-xs text-slate-400">Notizen</label>
-        <textarea v-model="form.notes" rows="3" :disabled="!canEdit" class="input-field resize-none" />
-      </div>
+      <UFormField label="Notizen" name="notes">
+        <UTextarea v-model="form.notes" :rows="3" :disabled="!canEdit" class="w-full" />
+      </UFormField>
 
       <div v-if="canEdit" class="flex flex-wrap gap-2 pt-2">
-        <button type="button" class="btn-primary" :disabled="saving" @click="emit('save')">
-          {{ saving ? 'Speichern…' : 'Speichern' }}
-        </button>
-        <button v-if="!isNew" type="button" class="btn-ghost !text-red-300" @click="emit('delete')">
+        <UButton color="primary" :loading="saving" @click="emit('save')">
+          Speichern
+        </UButton>
+        <UButton v-if="!isNew" variant="ghost" color="error" @click="emit('delete')">
           Löschen
-        </button>
+        </UButton>
       </div>
-    </div>
+    </UiAppCard>
 
-    <div class="surface-card p-5 lg:col-span-3">
+    <UiAppCard body-class="p-5 lg:col-span-3">
       <DispatcherTourStopEditor v-model="form.stops" :disabled="!canEdit" />
-    </div>
+    </UiAppCard>
   </div>
 </template>

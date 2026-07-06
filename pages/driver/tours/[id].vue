@@ -2,7 +2,6 @@
 import { COMPLIANCE_PROFILE_LABELS } from '~/shared/constants/compliance'
 import { TOUR_TYPE_LABELS, TOUR_STATUS_LABELS } from '~/shared/constants/tours'
 import { minutesToRoundedHours } from '~/shared/utils/time'
-import type { DriverTour } from '~/shared/types/driver'
 import type { TourStopFormRow } from '~/composables/useToursApi'
 
 definePageMeta({
@@ -15,18 +14,16 @@ const route = useRoute()
 const api = useDriverApi()
 
 const id = computed(() => route.params.id as string)
-const tour = ref<DriverTour | null>(null)
-const loadError = ref<string | null>(null)
 const actionError = ref<string | null>(null)
 const acting = ref(false)
 
-try {
-  const res = await api.get(id.value)
-  tour.value = res.item
-} catch {
-  loadError.value = api.error.value
-}
+const { data, pending, error } = await useAsyncData(
+  () => `driver-tour-${id.value}`,
+  () => api.get(id.value),
+  { watch: [id] },
+)
 
+const tour = computed(() => data.value?.item ?? null)
 const pageTitle = computed(() => tour.value?.name ?? 'Tour')
 const nextStatus = computed(() => (tour.value ? api.nextStatus(tour.value.status) : null))
 const actionLabel = computed(() => (tour.value ? api.statusActionLabel(tour.value.status) : null))
@@ -51,7 +48,7 @@ async function onStatusAction() {
   acting.value = true
   try {
     const res = await api.updateStatus(tour.value.id, nextStatus.value)
-    tour.value = res.item
+    data.value = res
   } catch {
     actionError.value = api.error.value
   } finally {
@@ -63,9 +60,7 @@ async function onStatusAction() {
 <template>
   <div class="space-y-6">
     <header class="space-y-3">
-      <NuxtLink to="/driver" class="inline-flex text-sm text-brand-400 no-underline hover:text-brand-300">
-        ← Meine Touren
-      </NuxtLink>
+      <UButton to="/driver" variant="link" color="primary" class="px-0">← Meine Touren</UButton>
       <div v-if="tour">
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -75,32 +70,32 @@ async function onStatusAction() {
               · {{ TOUR_TYPE_LABELS[tour.type] }}
             </p>
           </div>
-          <span class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
-            {{ TOUR_STATUS_LABELS[tour.status] }}
-          </span>
+          <UBadge color="neutral" variant="subtle">{{ TOUR_STATUS_LABELS[tour.status] }}</UBadge>
         </div>
       </div>
     </header>
 
-    <div
-      v-if="loadError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+    <div v-if="pending && !tour" class="text-sm text-slate-400">Laden…</div>
+
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="subtle"
+      title="Tour konnte nicht geladen werden"
       role="alert"
-    >
-      {{ loadError }}
-    </div>
+    />
 
     <template v-else-if="tour">
-      <div
+      <UAlert
         v-if="actionError"
-        class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+        color="error"
+        variant="subtle"
+        :title="actionError"
         role="alert"
-      >
-        {{ actionError }}
-      </div>
+      />
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="surface-card p-4">
+        <UiAppCard body-class="p-4">
           <p class="text-[10px] uppercase tracking-wide text-slate-500">Fahrzeug</p>
           <p class="mt-1 text-sm font-semibold text-white">
             {{ tour.vehicle?.plateNumber ?? '—' }}
@@ -108,36 +103,37 @@ async function onStatusAction() {
           <p v-if="tour.vehicle" class="text-xs text-slate-400">
             {{ tour.vehicle.name }} · {{ tour.vehicle.seats }} Sitze
           </p>
-        </div>
-        <div class="surface-card p-4">
+        </UiAppCard>
+        <UiAppCard body-class="p-4">
           <p class="text-[10px] uppercase tracking-wide text-slate-500">Lenkzeit</p>
           <p class="mt-1 text-sm font-semibold text-white">
             {{ minutesToRoundedHours(tour.totalDrivingMinutes) }}
           </p>
           <p class="text-xs text-slate-400">{{ COMPLIANCE_PROFILE_LABELS[tour.complianceProfile] }}</p>
-        </div>
+        </UiAppCard>
       </div>
 
-      <div class="surface-card p-4">
+      <UiAppCard body-class="p-4">
         <h2 class="mb-4 text-sm font-semibold text-white">Haltestellen</h2>
         <DriverStopTimeline :stops="tour.stops" />
-      </div>
+      </UiAppCard>
 
       <ClientOnly>
-        <div class="surface-card overflow-hidden p-1">
-          <DispatcherTourMap :stops="mapStops" />
-        </div>
+        <UiAppCard body-class="overflow-hidden p-1">
+          <LazyDispatcherTourMap :stops="mapStops" />
+        </UiAppCard>
       </ClientOnly>
 
       <div v-if="actionLabel && nextStatus" class="sticky bottom-20 z-30">
-        <button
-          type="button"
-          class="btn-primary w-full !min-h-12 text-base"
-          :disabled="acting"
+        <UButton
+          block
+          color="primary"
+          size="lg"
+          :loading="acting"
           @click="onStatusAction"
         >
-          {{ acting ? 'Speichern…' : actionLabel }}
-        </button>
+          {{ actionLabel }}
+        </UButton>
       </div>
     </template>
   </div>

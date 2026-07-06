@@ -25,21 +25,19 @@ useHead({ title: 'Fuhrpark' })
   <div class="space-y-6">
     <AdminPageHeader title="Fuhrpark" description="Busse und Fahrzeuge verwalten">
       <template #actions>
-        <NuxtLink to="/admin/vehicles/new" class="btn-primary no-underline">
-          + Neu
-        </NuxtLink>
+        <UButton to="/admin/vehicles/new" color="primary">+ Neu</UButton>
       </template>
     </AdminPageHeader>
 
     <div v-if="isInitialLoading" class="text-sm text-slate-400">Laden…</div>
 
-    <div
+    <UAlert
       v-else-if="error || vehiclesApiError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+      color="error"
+      variant="subtle"
+      :title="vehiclesApiError ?? 'Fahrzeuge konnten nicht geladen werden'"
       role="alert"
-    >
-      {{ vehiclesApiError ?? 'Fahrzeuge konnten nicht geladen werden' }}
-    </div>
+    />
 
     <UiEmptyState
       v-else-if="items.length === 0"
@@ -52,7 +50,7 @@ useHead({ title: 'Fuhrpark' })
         </svg>
       </template>
       <template #action>
-        <NuxtLink to="/admin/vehicles/new" class="btn-primary no-underline">Fahrzeug anlegen</NuxtLink>
+        <UButton to="/admin/vehicles/new" color="primary">Fahrzeug anlegen</UButton>
       </template>
     </UiEmptyState>
 
@@ -61,18 +59,20 @@ useHead({ title: 'Fuhrpark' })
         v-for="vehicle in items"
         :key="vehicle.id"
         :to="`/admin/vehicles/${vehicle.id}`"
-        class="surface-card block p-4 no-underline transition-colors hover:border-brand-500/30"
+        class="block no-underline"
       >
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0">
-            <p class="truncate font-semibold text-white">{{ vehicle.name }}</p>
-            <p class="mt-0.5 font-mono text-sm text-brand-400">{{ vehicle.plateNumber }}</p>
+        <UiAppCard body-class="p-4 transition-colors hover:border-brand-500/30">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="truncate font-semibold text-white">{{ vehicle.name }}</p>
+              <p class="mt-0.5 font-mono text-sm text-brand-400">{{ vehicle.plateNumber }}</p>
+            </div>
+            <AdminVehicleStatusBadge :status="vehicle.status" small />
           </div>
-          <AdminVehicleStatusBadge :status="vehicle.status" small />
-        </div>
-        <p class="mt-3 text-xs text-slate-500">
-          {{ VEHICLE_CLASS_LABELS[vehicle.vehicleClass] }} · {{ vehicle.seats }} Sitze
-        </p>
+          <p class="mt-3 text-xs text-slate-500">
+            {{ VEHICLE_CLASS_LABELS[vehicle.vehicleClass] }} · {{ vehicle.seats }} Sitze
+          </p>
+        </UiAppCard>
       </NuxtLink>
     </div>
   </div>

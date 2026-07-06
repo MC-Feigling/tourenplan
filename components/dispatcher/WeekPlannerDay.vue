@@ -24,8 +24,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <section
-    class="surface-card min-h-[8rem] p-3 transition-colors"
+  <UiAppCard
+    body-class="min-h-[8rem] p-3 transition-colors"
     :class="[
       day.isToday ? 'ring-1 ring-brand-500/40' : '',
       selectedDate === day.date ? 'ring-1 ring-brand-400/60 bg-brand-500/5' : '',
@@ -70,5 +70,5 @@ const emit = defineEmits<{
         Keine Touren
       </p>
     </div>
-  </section>
+  </UiAppCard>
 </template>

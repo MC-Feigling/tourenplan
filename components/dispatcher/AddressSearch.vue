@@ -66,15 +66,15 @@ function onBlur() {
 
 <template>
   <div class="relative">
-    <input
+    <UInput
       v-model="inputValue"
       :disabled="disabled"
       :placeholder="placeholder ?? 'Adresse suchen…'"
-      class="input-field"
       autocomplete="off"
+      class="w-full"
       @focus="results.length && (open = true)"
       @blur="onBlur"
-    >
+    />
     <ul
       v-if="open && results.length"
       class="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-white/10 bg-surface shadow-xl"

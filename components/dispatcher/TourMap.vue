@@ -2,7 +2,6 @@
 import type { TourStopFormRow } from '~/composables/useToursApi'
 import type { GeocodeResult } from '~/shared/types/routing'
 import { MAP_STYLE_URL } from '~/shared/constants/routing'
-import 'maplibre-gl/dist/maplibre-gl.css'
 
 const props = defineProps<{
   stops: TourStopFormRow[]
@@ -26,6 +25,7 @@ const geoStops = computed(() =>
 async function initMap() {
   if (!mapContainer.value || map) return
   maplibre = await import('maplibre-gl')
+  await import('maplibre-gl/dist/maplibre-gl.css')
   map = new maplibre.Map({
     container: mapContainer.value,
     style: MAP_STYLE_URL,

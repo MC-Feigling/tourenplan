@@ -19,6 +19,21 @@ const emit = defineEmits<{
 
 const requiresTacho = computed(() => form.value.seats >= 9)
 
+const vehicleClassItems = VEHICLE_CLASSES.map((cls) => ({
+  label: VEHICLE_CLASS_LABELS[cls],
+  value: cls,
+}))
+
+const statusItems = VEHICLE_STATUSES.map((s) => ({
+  label: VEHICLE_STATUS_LABELS[s],
+  value: s,
+}))
+
+const tachoItems = TACHO_TYPES.map((t) => ({
+  label: TACHO_TYPE_LABELS[t],
+  value: t,
+}))
+
 function toggleFeature(feature: (typeof VEHICLE_FEATURES)[number]) {
   const set = new Set(form.value.features)
   if (set.has(feature)) set.delete(feature)
@@ -30,88 +45,73 @@ function toggleFeature(feature: (typeof VEHICLE_FEATURES)[number]) {
 <template>
   <form class="space-y-5" @submit.prevent="emit('submit')">
     <div class="grid gap-4 sm:grid-cols-2">
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="plateNumber">Kennzeichen</label>
-        <input
+      <UFormField label="Kennzeichen" name="plateNumber">
+        <UInput
           id="plateNumber"
           v-model="form.plateNumber"
           required
-          class="input-field uppercase"
+          class="w-full uppercase"
           placeholder="M-AB 1234"
-        >
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="name">Bezeichnung</label>
-        <input id="name" v-model="form.name" required class="input-field" placeholder="Setra 516">
-      </div>
+        />
+      </UFormField>
+      <UFormField label="Bezeichnung" name="name">
+        <UInput id="name" v-model="form.name" required class="w-full" placeholder="Setra 516" />
+      </UFormField>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-3">
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="seats">Sitze (inkl. Fahrer)</label>
-        <input id="seats" v-model.number="form.seats" type="number" min="1" max="120" required class="input-field">
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="vehicleClass">Fahrzeugtyp</label>
-        <select id="vehicleClass" v-model="form.vehicleClass" class="input-field">
-          <option v-for="cls in VEHICLE_CLASSES" :key="cls" :value="cls">
-            {{ VEHICLE_CLASS_LABELS[cls] }}
-          </option>
-        </select>
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="status">Status</label>
-        <select id="status" v-model="form.status" class="input-field">
-          <option v-for="s in VEHICLE_STATUSES" :key="s" :value="s">
-            {{ VEHICLE_STATUS_LABELS[s] }}
-          </option>
-        </select>
-      </div>
+      <UFormField label="Sitze (inkl. Fahrer)" name="seats">
+        <UInput id="seats" v-model="form.seats" type="number" min="1" max="120" required class="w-full" />
+      </UFormField>
+      <UFormField label="Fahrzeugtyp" name="vehicleClass">
+        <USelect id="vehicleClass" v-model="form.vehicleClass" :items="vehicleClassItems" class="w-full" />
+      </UFormField>
+      <UFormField label="Status" name="status">
+        <USelect id="status" v-model="form.status" :items="statusItems" class="w-full" />
+      </UFormField>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="tachoType">Tachograph</label>
-        <select id="tachoType" v-model="form.tachoType" class="input-field">
-          <option v-for="t in TACHO_TYPES" :key="t" :value="t">
-            {{ TACHO_TYPE_LABELS[t] }}
-          </option>
-        </select>
-        <p v-if="requiresTacho" class="text-xs text-amber-400/80">≥9 Sitze: Tachograph-Pflicht beachten</p>
-      </div>
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-400" for="nextInspection">Nächste HU</label>
-        <input id="nextInspection" v-model="form.nextInspectionDate" type="date" class="input-field">
-      </div>
+      <UFormField label="Tachograph" name="tachoType">
+        <USelect id="tachoType" v-model="form.tachoType" :items="tachoItems" class="w-full" />
+        <p v-if="requiresTacho" class="mt-1 text-xs text-amber-400/80">≥9 Sitze: Tachograph-Pflicht beachten</p>
+      </UFormField>
+      <UFormField label="Nächste HU" name="nextInspection">
+        <UInput id="nextInspection" v-model="form.nextInspectionDate" type="date" class="w-full" />
+      </UFormField>
     </div>
 
-    <div class="space-y-1.5">
-      <label class="block text-xs font-medium text-slate-400" for="nextMaintenanceKm">Nächste Wartung (km)</label>
-      <input id="nextMaintenanceKm" v-model="form.nextMaintenanceKm" type="number" min="0" class="input-field" placeholder="optional">
-    </div>
+    <UFormField label="Nächste Wartung (km)" name="nextMaintenanceKm">
+      <UInput
+        id="nextMaintenanceKm"
+        v-model="form.nextMaintenanceKm"
+        type="number"
+        min="0"
+        class="w-full"
+        placeholder="optional"
+      />
+    </UFormField>
 
     <fieldset class="space-y-2">
       <legend class="text-xs font-medium text-slate-400">Ausstattung</legend>
       <div class="flex flex-wrap gap-2">
-        <button
+        <UButton
           v-for="feature in VEHICLE_FEATURES"
           :key="feature"
           type="button"
-          class="min-h-touch rounded-xl border px-4 py-2 text-sm font-medium transition-colors"
-          :class="form.features.includes(feature)
-            ? 'border-brand-500/50 bg-brand-500/15 text-brand-300'
-            : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'"
+          size="sm"
+          :variant="form.features.includes(feature) ? 'soft' : 'outline'"
+          :color="form.features.includes(feature) ? 'primary' : 'neutral'"
           @click="toggleFeature(feature)"
         >
           {{ VEHICLE_FEATURE_LABELS[feature] }}
-        </button>
+        </UButton>
       </div>
     </fieldset>
 
-    <div class="space-y-1.5">
-      <label class="block text-xs font-medium text-slate-400" for="notes">Notizen</label>
-      <textarea id="notes" v-model="form.notes" rows="3" class="input-field resize-none" />
-    </div>
+    <UFormField label="Notizen" name="notes">
+      <UTextarea id="notes" v-model="form.notes" :rows="3" class="w-full" />
+    </UFormField>
 
     <div class="flex gap-3 pt-2">
       <slot name="actions" />

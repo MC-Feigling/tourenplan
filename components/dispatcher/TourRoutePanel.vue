@@ -18,7 +18,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="surface-card space-y-4 p-5">
+  <UiAppCard body-class="space-y-4 p-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 class="text-sm font-semibold text-white">Route</h2>
@@ -26,35 +26,27 @@ const emit = defineEmits<{
           Adressen suchen, Route berechnen — Zeiten werden automatisch gesetzt (manuell überschreibbar).
         </p>
       </div>
-      <button
+      <UButton
         v-if="canEdit"
-        type="button"
-        class="btn-primary shrink-0"
+        color="primary"
+        class="shrink-0"
         :disabled="routingLoading || geocodedCount < 2"
+        :loading="routingLoading"
         @click="emit('calculateRoute')"
       >
-        {{ routingLoading ? 'Berechne…' : 'Route berechnen' }}
-      </button>
+        Route berechnen
+      </UButton>
     </div>
 
-    <div
-      v-if="routeError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-    >
-      {{ routeError }}
-    </div>
+    <UAlert v-if="routeError" color="error" variant="subtle" :title="routeError" />
 
     <div v-if="routeStats" class="flex flex-wrap gap-2 text-xs">
-      <span class="rounded-md bg-brand-500/15 px-2 py-1 text-brand-300">
-        {{ routeStats.totalDistanceKm }} km
-      </span>
-      <span class="rounded-md bg-brand-500/15 px-2 py-1 text-brand-300">
-        {{ minutesToRoundedHours(routeStats.totalDrivingMinutes) }} Lenkzeit
-      </span>
+      <UBadge color="primary" variant="subtle">{{ routeStats.totalDistanceKm }} km</UBadge>
+      <UBadge color="primary" variant="subtle">{{ minutesToRoundedHours(routeStats.totalDrivingMinutes) }} Lenkzeit</UBadge>
     </div>
 
     <ClientOnly>
-      <DispatcherTourMap :stops="stops" :route-coordinates="routeCoordinates" />
+      <LazyDispatcherTourMap :stops="stops" :route-coordinates="routeCoordinates" />
     </ClientOnly>
-  </div>
+  </UiAppCard>
 </template>

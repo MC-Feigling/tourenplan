@@ -138,17 +138,17 @@ async function onDelete() {
   <div class="space-y-6">
     <AdminPageHeader :title="pageTitle" :description="isNew ? 'Neue Tour planen' : 'Tour bearbeiten'">
       <template #actions>
-        <NuxtLink to="/dispatcher" class="btn-ghost no-underline">← Wochenplan</NuxtLink>
+        <UButton to="/dispatcher" variant="ghost" color="neutral">← Wochenplan</UButton>
       </template>
     </AdminPageHeader>
 
-    <div
+    <UAlert
       v-if="saveError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+      color="error"
+      variant="subtle"
+      :title="saveError"
       role="alert"
-    >
-      {{ saveError }}
-    </div>
+    />
 
     <DispatcherTourRoutePanel
       :stops="form.stops"

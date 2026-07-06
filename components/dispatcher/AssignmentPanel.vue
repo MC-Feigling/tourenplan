@@ -30,12 +30,6 @@ const statusLabels = {
   error: 'Konflikte',
 }
 
-const dotClasses = {
-  ok: 'bg-emerald-400',
-  warning: 'bg-amber-400',
-  error: 'bg-red-400',
-}
-
 const severityDot = {
   error: 'bg-red-400',
   warning: 'bg-amber-400',
@@ -48,73 +42,68 @@ const availableDrivers = computed(() =>
 
 const availableVehicles = computed(() => props.vehicles)
 
-function driverOptionLabel(driver: AssignmentDriverContext): string {
-  if (driver.onLeave) return `${driver.fullName} — abwesend`
-  return driver.fullName
-}
+const driverModel = computed({
+  get: () => props.driverId,
+  set: (value: string) => emit('update:driverId', value),
+})
 
-function vehicleOptionLabel(vehicle: AssignmentVehicleContext): string {
-  if (vehicle.status !== 'available') {
-    return `${vehicle.plateNumber} — ${VEHICLE_STATUS_LABELS[vehicle.status]}`
-  }
-  return `${vehicle.plateNumber} · ${vehicle.name}`
-}
+const vehicleModel = computed({
+  get: () => props.vehicleId,
+  set: (value: string) => emit('update:vehicleId', value),
+})
+
+const driverItems = computed(() => [
+  { label: '— Kein Fahrer —', value: '' },
+  ...availableDrivers.value.map((driver) => ({
+    label: driver.onLeave ? `${driver.fullName} — abwesend` : driver.fullName,
+    value: driver.id,
+    disabled: driver.onLeave,
+  })),
+])
+
+const vehicleItems = computed(() => [
+  { label: '— Kein Fahrzeug —', value: '' },
+  ...availableVehicles.value.map((vehicle) => ({
+    label: vehicle.status !== 'available'
+      ? `${vehicle.plateNumber} — ${VEHICLE_STATUS_LABELS[vehicle.status]}`
+      : `${vehicle.plateNumber} · ${vehicle.name}`,
+    value: vehicle.id,
+    disabled: vehicle.status !== 'available',
+  })),
+])
 </script>
 
 <template>
   <div class="space-y-4">
     <div class="flex items-center justify-between gap-3">
       <h2 class="text-sm font-semibold text-white">Zuweisung</h2>
-      <span
+      <UBadge
         v-if="result"
-        class="rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
-        :class="statusClasses[result.overallStatus]"
+        :color="result.overallStatus === 'ok' ? 'success' : result.overallStatus === 'warning' ? 'warning' : 'error'"
+        variant="subtle"
       >
         {{ statusLabels[result.overallStatus] }}
-      </span>
+      </UBadge>
       <span v-else-if="loading" class="text-xs text-slate-500">Prüfe…</span>
     </div>
 
     <div class="grid gap-3 sm:grid-cols-2">
-      <div class="space-y-1.5">
-        <label class="block text-xs text-slate-400">Fahrer</label>
-        <select
-          :value="driverId"
+      <UFormField label="Fahrer" name="driverId">
+        <USelect
+          v-model="driverModel"
+          :items="driverItems"
           :disabled="!canEdit"
-          class="input-field"
-          @change="emit('update:driverId', ($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">— Kein Fahrer —</option>
-          <option
-            v-for="driver in availableDrivers"
-            :key="driver.id"
-            :value="driver.id"
-            :disabled="driver.onLeave"
-          >
-            {{ driverOptionLabel(driver) }}
-          </option>
-        </select>
-      </div>
-
-      <div class="space-y-1.5">
-        <label class="block text-xs text-slate-400">Fahrzeug</label>
-        <select
-          :value="vehicleId"
+          class="w-full"
+        />
+      </UFormField>
+      <UFormField label="Fahrzeug" name="vehicleId">
+        <USelect
+          v-model="vehicleModel"
+          :items="vehicleItems"
           :disabled="!canEdit"
-          class="input-field"
-          @change="emit('update:vehicleId', ($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">— Kein Fahrzeug —</option>
-          <option
-            v-for="vehicle in availableVehicles"
-            :key="vehicle.id"
-            :value="vehicle.id"
-            :disabled="vehicle.status !== 'available'"
-          >
-            {{ vehicleOptionLabel(vehicle) }}
-          </option>
-        </select>
-      </div>
+          class="w-full"
+        />
+      </UFormField>
     </div>
 
     <ul v-if="result?.assignment.issues.length" class="space-y-2">

@@ -119,62 +119,54 @@ useHead({ title: isNew.value ? 'Linie anlegen' : form.value.name })
   <div class="space-y-6">
     <AdminPageHeader :title="isNew ? 'Linie anlegen' : form.name" description="Wiederkehrende Linienfahrt">
       <template #actions>
-        <NuxtLink to="/dispatcher/lines" class="btn-ghost no-underline">← Zurück</NuxtLink>
+        <UButton to="/dispatcher/lines" variant="ghost" color="neutral">← Zurück</UButton>
       </template>
     </AdminPageHeader>
 
     <div v-if="pending && !existingLine" class="text-sm text-slate-400">Laden…</div>
 
-    <div
+    <UAlert
       v-else-if="loadError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-    >
-      Linie konnte nicht geladen werden
-    </div>
+      color="error"
+      variant="subtle"
+      title="Linie konnte nicht geladen werden"
+    />
 
     <template v-else>
-      <div v-if="saveError" class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-        {{ saveError }}
-      </div>
+      <UAlert v-if="saveError" color="error" variant="subtle" :title="saveError" />
 
-      <form class="surface-card space-y-5 p-5" @submit.prevent="onSave">
+      <UiAppCard body-class="space-y-5 p-5">
+      <form class="space-y-5" @submit.prevent="onSave">
       <div class="grid gap-4 sm:grid-cols-2">
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Name</label>
-          <input v-model="form.name" required class="input-field">
-        </div>
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Linienlänge (km)</label>
-          <input v-model.number="form.lineLengthKm" type="number" min="0" required class="input-field">
-        </div>
+        <UFormField label="Name" name="name">
+          <UInput v-model="form.name" required class="w-full" />
+        </UFormField>
+        <UFormField label="Linienlänge (km)" name="lineLengthKm">
+          <UInput v-model="form.lineLengthKm" type="number" min="0" required class="w-full" />
+        </UFormField>
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Standard-Abfahrt</label>
-          <input v-model="form.defaultDepartureTime" type="time" required class="input-field">
-        </div>
-        <label class="flex min-h-touch items-center gap-3 self-end rounded-xl border border-white/10 px-4 py-3">
-          <input v-model="form.active" type="checkbox" class="h-4 w-4 rounded">
-          <span class="text-sm text-slate-200">Aktiv</span>
-        </label>
+        <UFormField label="Standard-Abfahrt" name="defaultDepartureTime">
+          <UInput v-model="form.defaultDepartureTime" type="time" required class="w-full" />
+        </UFormField>
+        <UCheckbox v-model="form.active" label="Aktiv" class="self-end" />
       </div>
 
       <fieldset class="space-y-2">
         <legend class="text-xs text-slate-400">Wochentage</legend>
         <div class="flex flex-wrap gap-2">
-          <button
+          <UButton
             v-for="day in ISO_WEEKDAYS"
             :key="day"
             type="button"
-            class="min-h-touch rounded-xl border px-4 py-2 text-sm font-medium"
-            :class="form.weekdays.includes(day)
-              ? 'border-brand-500/50 bg-brand-500/15 text-brand-300'
-              : 'border-white/10 bg-white/5 text-slate-400'"
+            size="sm"
+            :variant="form.weekdays.includes(day) ? 'soft' : 'outline'"
+            :color="form.weekdays.includes(day) ? 'primary' : 'neutral'"
             @click="toggleWeekday(day)"
           >
             {{ WEEKDAY_LABELS[day] }}
-          </button>
+          </UButton>
         </div>
       </fieldset>
 
@@ -186,37 +178,35 @@ useHead({ title: isNew.value ? 'Linie anlegen' : form.value.name })
           class="rounded-xl border border-white/10 p-4"
         >
           <div class="grid gap-3 sm:grid-cols-2">
-            <div class="space-y-1.5 sm:col-span-2">
-              <label class="block text-xs text-slate-400">Ort</label>
-              <input v-model="stop.locationName" required class="input-field">
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-xs text-slate-400">Offset (min ab Start)</label>
-              <input v-model.number="stop.offsetMinutesFromStart" type="number" min="0" class="input-field">
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-xs text-slate-400">Aufenthalt (min)</label>
-              <input v-model.number="stop.dwellMinutes" type="number" min="0" class="input-field">
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-xs text-slate-400">Lenkzeit ab vorher (min)</label>
-              <input v-model.number="stop.drivingMinutesFromPrev" type="number" min="0" class="input-field">
-            </div>
-            <div class="space-y-1.5">
-              <label class="block text-xs text-slate-400">Typ</label>
-              <select v-model="stop.stopType" class="input-field">
-                <option v-for="t in STOP_TYPES" :key="t" :value="t">{{ STOP_TYPE_LABELS[t] }}</option>
-              </select>
-            </div>
+            <UFormField label="Ort" :name="`stop-${index}-location`" class="sm:col-span-2">
+              <UInput v-model="stop.locationName" required class="w-full" />
+            </UFormField>
+            <UFormField label="Offset (min ab Start)" :name="`stop-${index}-offset`">
+              <UInput v-model="stop.offsetMinutesFromStart" type="number" min="0" class="w-full" />
+            </UFormField>
+            <UFormField label="Aufenthalt (min)" :name="`stop-${index}-dwell`">
+              <UInput v-model="stop.dwellMinutes" type="number" min="0" class="w-full" />
+            </UFormField>
+            <UFormField label="Lenkzeit ab vorher (min)" :name="`stop-${index}-driving`">
+              <UInput v-model="stop.drivingMinutesFromPrev" type="number" min="0" class="w-full" />
+            </UFormField>
+            <UFormField label="Typ" :name="`stop-${index}-type`">
+              <USelect
+                v-model="stop.stopType"
+                :items="STOP_TYPES.map((t) => ({ label: STOP_TYPE_LABELS[t], value: t }))"
+                class="w-full"
+              />
+            </UFormField>
           </div>
         </article>
-        <button type="button" class="btn-ghost w-full" @click="addStop">+ Haltestelle</button>
+        <UButton type="button" variant="outline" color="neutral" block @click="addStop">+ Haltestelle</UButton>
       </div>
 
-      <button type="submit" class="btn-primary" :disabled="saving || form.weekdays.length === 0">
-        {{ saving ? 'Speichern…' : 'Speichern' }}
-      </button>
+      <UButton type="submit" color="primary" :disabled="form.weekdays.length === 0" :loading="saving">
+        Speichern
+      </UButton>
       </form>
+      </UiAppCard>
     </template>
   </div>
 </template>

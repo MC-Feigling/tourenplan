@@ -27,19 +27,19 @@ useHead({ title: 'Linien' })
   <div class="space-y-6">
     <AdminPageHeader title="Linien" description="Wiederkehrende Linienfahrten">
       <template #actions>
-        <NuxtLink to="/dispatcher" class="btn-ghost no-underline">← Wochenplan</NuxtLink>
-        <NuxtLink v-if="canEdit" to="/dispatcher/lines/new" class="btn-primary no-underline">+ Linie</NuxtLink>
+        <UButton to="/dispatcher" variant="ghost" color="neutral">← Wochenplan</UButton>
+        <UButton v-if="canEdit" to="/dispatcher/lines/new" color="primary">+ Linie</UButton>
       </template>
     </AdminPageHeader>
 
     <div v-if="isInitialLoading" class="text-sm text-slate-400">Laden…</div>
 
-    <div
+    <UAlert
       v-else-if="error || toursApiError"
-      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-    >
-      {{ toursApiError ?? 'Linien konnten nicht geladen werden' }}
-    </div>
+      color="error"
+      variant="subtle"
+      :title="toursApiError ?? 'Linien konnten nicht geladen werden'"
+    />
 
     <UiEmptyState
       v-else-if="items.length === 0"
@@ -47,7 +47,7 @@ useHead({ title: 'Linien' })
       description="Lege eine wiederkehrende Linie an und generiere Touren im Wochenplan."
     >
       <template #action>
-        <NuxtLink v-if="canEdit" to="/dispatcher/lines/new" class="btn-primary no-underline">Linie anlegen</NuxtLink>
+        <UButton v-if="canEdit" to="/dispatcher/lines/new" color="primary">Linie anlegen</UButton>
       </template>
     </UiEmptyState>
 
@@ -56,24 +56,23 @@ useHead({ title: 'Linien' })
         v-for="line in items"
         :key="line.id"
         :to="`/dispatcher/lines/${line.id}`"
-        class="surface-card block p-4 no-underline hover:border-brand-500/30"
+        class="block no-underline"
       >
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <p class="font-semibold text-white">{{ line.name }}</p>
-            <p class="mt-1 text-sm text-slate-400">{{ line.lineLengthKm }} km · Ab {{ line.defaultDepartureTime }}</p>
+        <UiAppCard body-class="p-4 hover:border-brand-500/30">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <p class="font-semibold text-white">{{ line.name }}</p>
+              <p class="mt-1 text-sm text-slate-400">{{ line.lineLengthKm }} km · Ab {{ line.defaultDepartureTime }}</p>
+            </div>
+            <UBadge :color="line.active ? 'success' : 'neutral'" variant="subtle" size="sm">
+              {{ line.active ? 'Aktiv' : 'Inaktiv' }}
+            </UBadge>
           </div>
-          <span
-            class="rounded-full px-2 py-0.5 text-[10px]"
-            :class="line.active ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-700 text-slate-400'"
-          >
-            {{ line.active ? 'Aktiv' : 'Inaktiv' }}
-          </span>
-        </div>
-        <p class="mt-3 text-xs text-slate-500">
-          {{ line.weekdays.map((d) => WEEKDAY_LABELS[d as keyof typeof WEEKDAY_LABELS]).join(', ') }}
-          · {{ line.defaultStops.length }} Haltestellen
-        </p>
+          <p class="mt-3 text-xs text-slate-500">
+            {{ line.weekdays.map((d) => WEEKDAY_LABELS[d as keyof typeof WEEKDAY_LABELS]).join(', ') }}
+            · {{ line.defaultStops.length }} Haltestellen
+          </p>
+        </UiAppCard>
       </NuxtLink>
     </div>
   </div>

@@ -10,6 +10,8 @@ defineProps<{
   disabled?: boolean
 }>()
 
+const stopTypeItems = STOP_TYPES.map((t) => ({ label: STOP_TYPE_LABELS[t], value: t }))
+
 const totalDriving = computed(() =>
   stops.value.reduce((sum, s) => sum + s.drivingMinutesFromPrev, 0),
 )
@@ -69,58 +71,53 @@ function onAddressSelect(index: number, result: GeocodeResult) {
             {{ index + 1 }}
           </span>
           <div class="flex items-center gap-2">
-            <span
-              v-if="stop.lat !== null && stop.lng !== null"
-              class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] text-emerald-300"
-            >
+            <UBadge v-if="stop.lat !== null && stop.lng !== null" color="success" variant="subtle" size="sm">
               GPS
-            </span>
+            </UBadge>
             <div v-if="!disabled" class="flex gap-1">
-              <button type="button" class="btn-ghost !min-h-8 !px-2 !py-1 text-xs" :disabled="index === 0" @click="moveStop(index, -1)">↑</button>
-              <button type="button" class="btn-ghost !min-h-8 !px-2 !py-1 text-xs" :disabled="index === stops.length - 1" @click="moveStop(index, 1)">↓</button>
-              <button type="button" class="btn-ghost !min-h-8 !px-2 !py-1 text-xs !text-red-300" :disabled="stops.length <= 1" @click="removeStop(index)">×</button>
+              <UButton size="xs" variant="ghost" color="neutral" :disabled="index === 0" @click="moveStop(index, -1)">↑</UButton>
+              <UButton size="xs" variant="ghost" color="neutral" :disabled="index === stops.length - 1" @click="moveStop(index, 1)">↓</UButton>
+              <UButton size="xs" variant="ghost" color="error" :disabled="stops.length <= 1" @click="removeStop(index)">×</UButton>
             </div>
           </div>
         </div>
 
         <div class="grid gap-3 sm:grid-cols-2">
-          <div class="space-y-1.5 sm:col-span-2">
-            <label class="block text-xs text-slate-400">Ort</label>
-            <input v-model="stop.locationName" required :disabled="disabled" class="input-field">
-          </div>
-          <div class="space-y-1.5 sm:col-span-2">
-            <label class="block text-xs text-slate-400">Adresse</label>
+          <UFormField label="Ort" :name="`stop-location-${index}`" class="sm:col-span-2">
+            <UInput v-model="stop.locationName" required :disabled="disabled" class="w-full" />
+          </UFormField>
+          <UFormField label="Adresse" :name="`stop-address-${index}`" class="sm:col-span-2">
             <DispatcherAddressSearch
               v-if="!disabled"
               v-model="stop.address"
               @select="onAddressSelect(index, $event)"
             />
-            <input v-else v-model="stop.address" disabled class="input-field">
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400">Ankunft</label>
-            <input v-model="stop.plannedArrival" type="time" required :disabled="disabled" class="input-field">
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400">Abfahrt</label>
-            <input v-model="stop.plannedDeparture" type="time" required :disabled="disabled" class="input-field">
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400">Typ</label>
-            <select v-model="stop.stopType" :disabled="disabled" class="input-field">
-              <option v-for="t in STOP_TYPES" :key="t" :value="t">{{ STOP_TYPE_LABELS[t] }}</option>
-            </select>
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400">Lenkzeit ab vorher (min)</label>
-            <input v-model.number="stop.drivingMinutesFromPrev" type="number" min="0" :disabled="disabled || index === 0" class="input-field">
-          </div>
+            <UInput v-else v-model="stop.address" disabled class="w-full" />
+          </UFormField>
+          <UFormField label="Ankunft" :name="`stop-arrival-${index}`">
+            <UInput v-model="stop.plannedArrival" type="time" required :disabled="disabled" class="w-full" />
+          </UFormField>
+          <UFormField label="Abfahrt" :name="`stop-departure-${index}`">
+            <UInput v-model="stop.plannedDeparture" type="time" required :disabled="disabled" class="w-full" />
+          </UFormField>
+          <UFormField label="Typ" :name="`stop-type-${index}`">
+            <USelect v-model="stop.stopType" :items="stopTypeItems" :disabled="disabled" class="w-full" />
+          </UFormField>
+          <UFormField label="Lenkzeit ab vorher (min)" :name="`stop-driving-${index}`">
+            <UInput
+              v-model="stop.drivingMinutesFromPrev"
+              type="number"
+              min="0"
+              :disabled="disabled || index === 0"
+              class="w-full"
+            />
+          </UFormField>
         </div>
       </article>
     </div>
 
-    <button v-if="!disabled" type="button" class="btn-ghost w-full" @click="addStop">
+    <UButton v-if="!disabled" type="button" variant="outline" color="neutral" block @click="addStop">
       + Haltestelle
-    </button>
+    </UButton>
   </div>
 </template>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { APP_CARD_UI } from '~/shared/constants/ui'
+
 defineProps<{
   title: string
   description?: string
@@ -14,7 +16,7 @@ const slots = defineSlots<{
   <UCard
     variant="subtle"
     :ui="{
-      root: 'rounded-2xl border border-white/10 bg-surface/80 backdrop-blur-sm shadow-xl ring-0',
+      root: APP_CARD_UI.root,
       body: 'flex flex-col items-center justify-center px-6 py-12 text-center',
     }"
   >

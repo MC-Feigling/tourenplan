@@ -15,24 +15,28 @@ useHead({ title: 'Administration' })
     />
 
     <div class="grid gap-4 sm:grid-cols-2">
-      <NuxtLink to="/admin/vehicles" class="surface-card group block p-5 no-underline transition-colors hover:border-brand-500/30">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="font-semibold text-white group-hover:text-brand-300">Fuhrpark</h2>
-            <p class="mt-2 text-sm text-slate-400">Fahrzeuge anlegen und verwalten</p>
+      <NuxtLink to="/admin/vehicles" class="group block no-underline">
+        <UiAppCard body-class="p-5 transition-colors group-hover:border-brand-500/30">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="font-semibold text-white group-hover:text-brand-300">Fuhrpark</h2>
+              <p class="mt-2 text-sm text-slate-400">Fahrzeuge anlegen und verwalten</p>
+            </div>
+            <UBadge color="primary" variant="subtle">→</UBadge>
           </div>
-          <span class="rounded-lg bg-brand-500/10 px-2 py-1 text-xs text-brand-400">→</span>
-        </div>
+        </UiAppCard>
       </NuxtLink>
 
-      <NuxtLink to="/admin/staff" class="surface-card group block p-5 no-underline transition-colors hover:border-brand-500/30">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="font-semibold text-white group-hover:text-brand-300">Mitarbeiter</h2>
-            <p class="mt-2 text-sm text-slate-400">Fahrer, Disponenten, Abwesenheit</p>
+      <NuxtLink to="/admin/staff" class="group block no-underline">
+        <UiAppCard body-class="p-5 transition-colors group-hover:border-brand-500/30">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="font-semibold text-white group-hover:text-brand-300">Mitarbeiter</h2>
+              <p class="mt-2 text-sm text-slate-400">Fahrer, Disponenten, Abwesenheit</p>
+            </div>
+            <UBadge color="primary" variant="subtle">→</UBadge>
           </div>
-          <span class="rounded-lg bg-brand-500/10 px-2 py-1 text-xs text-brand-400">→</span>
-        </div>
+        </UiAppCard>
       </NuxtLink>
     </div>
   </div>

@@ -16,7 +16,7 @@ defineProps<{
 
 <template>
   <div class="space-y-6">
-    <div class="surface-card p-5">
+    <UiAppCard body-class="p-5">
       <DispatcherAssignmentPanel
         v-model:driver-id="driverId"
         v-model:vehicle-id="vehicleId"
@@ -26,13 +26,13 @@ defineProps<{
         :vehicles="vehicles"
         :can-edit="canEdit"
       />
-    </div>
+    </UiAppCard>
 
-    <div class="surface-card p-5">
+    <UiAppCard body-class="p-5">
       <DispatcherCompliancePanel
         :result="result?.compliance ?? null"
         :loading="loading"
       />
-    </div>
+    </UiAppCard>
   </div>
 </template>
