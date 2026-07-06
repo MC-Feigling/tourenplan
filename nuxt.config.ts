@@ -1,23 +1,36 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss', '@vite-pwa/nuxt'],
+  modules: ['@pinia/nuxt', '@nuxt/ui', '@nuxtjs/tailwindcss', '@vite-pwa/nuxt'],
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark',
+  },
+  tailwindcss: {
+    cssPath: '~/assets/css/ui.css',
+    experimental: {
+      tailwindcss4: true,
+    },
+  },
   css: ['~/assets/css/main.css'],
-    typescript: {
+  routeRules: {
+    '/api/**': { cors: true },
+    '/driver/**': { ssr: true },
+    '/admin/**': { ssr: true },
+  },
+  typescript: {
     strict: true,
-    typeCheck: false,
+    typeCheck: true,
   },
   runtimeConfig: {
     databaseUrl:
       process.env.NUXT_DATABASE_URL ||
       process.env.DATABASE_URL ||
       'postgresql://tourenplan:tourenplan_dev@127.0.0.1:5432/tourenplan',
-    jwtSecret: process.env.NUXT_JWT_SECRET || 'dev-only-change-me-in-production',
+    jwtSecret: process.env.NUXT_JWT_SECRET || '',
     orsApiKey: process.env.NUXT_ORS_API_KEY || '',
     bootstrapAdminEmail: process.env.NUXT_BOOTSTRAP_ADMIN_EMAIL || 'admin@localhost.local',
-    bootstrapAdminPassword:
-      process.env.NUXT_BOOTSTRAP_ADMIN_PASSWORD ||
-      (process.env.NODE_ENV === 'development' ? 'admin-change-me' : ''),
+    bootstrapAdminPassword: process.env.NUXT_BOOTSTRAP_ADMIN_PASSWORD || '',
     public: {
       appName: 'Tourenplan',
     },
@@ -75,5 +88,8 @@ export default defineNuxtConfig({
         },
       ],
     },
+  },
+  ui: {
+    fonts: false,
   },
 })

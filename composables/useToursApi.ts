@@ -1,4 +1,5 @@
 import type { PublicLineTemplate, PublicTour, PublicTourStop } from '~/shared/types/tours'
+import { extractError } from '~/shared/utils/apiError'
 import type { TourType, TourStatus, StopType } from '~/shared/constants/tours'
 
 export type TourStopFormRow = {
@@ -225,9 +226,4 @@ export function useToursApi() {
     listLineTemplates,
     generateFromTemplate,
   }
-}
-
-function extractError(e: unknown): string {
-  const err = e as { data?: { statusMessage?: string }; message?: string }
-  return err.data?.statusMessage ?? err.message ?? 'Unbekannter Fehler'
 }

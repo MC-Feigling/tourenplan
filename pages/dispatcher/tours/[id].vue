@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { COMPLIANCE_PROFILE_LABELS } from '~/shared/constants/compliance'
-import { TOUR_TYPES, TOUR_STATUSES, TOUR_TYPE_LABELS, TOUR_STATUS_LABELS } from '~/shared/constants/tours'
-import { minutesToRoundedHours } from '~/shared/utils/time'
 import {
   emptyTourForm,
   tourToForm,
@@ -9,7 +6,6 @@ import {
 } from '~/composables/useToursApi'
 import { applyRouteToStops, stopsWithCoordinates, useRoutingApi } from '~/composables/useRoutingApi'
 import { useAssignmentApi } from '~/composables/useAssignmentApi'
-import type { AssignmentCheckResult } from '~/composables/useAssignmentApi'
 
 definePageMeta({
   middleware: 'auth',
@@ -24,9 +20,6 @@ const routing = useRoutingApi()
 const assignmentApi = useAssignmentApi()
 const routingLoading = routing.loading
 const assignmentLoading = assignmentApi.loading
-
-const assignmentResult = ref<AssignmentCheckResult | null>(null)
-let assignmentTimeout: ReturnType<typeof setTimeout> | null = null
 
 const id = computed(() => route.params.id as string)
 const isNew = computed(() => id.value === 'new')
@@ -83,26 +76,10 @@ const geocodedCount = computed(() => stopsWithCoordinates(form.value.stops).leng
 
 useHead({ title: pageTitle })
 
-async function runAssignmentCheck() {
-  if (form.value.stops.length === 0) return
-  try {
-    assignmentResult.value = await assignmentApi.validateTour(form.value, {
-      tourId: isNew.value ? undefined : id.value,
-    })
-  } catch {
-    assignmentResult.value = null
-  }
-}
-
-function scheduleAssignmentCheck() {
-  if (assignmentTimeout) clearTimeout(assignmentTimeout)
-  assignmentTimeout = setTimeout(() => void runAssignmentCheck(), 400)
-}
-
-watch(form, () => scheduleAssignmentCheck(), { deep: true })
-
-onMounted(() => {
-  void runAssignmentCheck()
+const { assignmentResult } = useTourAssignmentCheck({
+  form,
+  tourId: computed(() => (isNew.value ? undefined : id.value)),
+  validate: (formValue, opts) => assignmentApi.validateTour(formValue, opts),
 })
 
 async function onSave() {
@@ -173,121 +150,35 @@ async function onDelete() {
       {{ saveError }}
     </div>
 
-    <div class="surface-card space-y-4 p-5">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 class="text-sm font-semibold text-white">Route</h2>
-          <p class="mt-1 text-xs text-slate-400">
-            Adressen suchen, Route berechnen — Zeiten werden automatisch gesetzt (manuell überschreibbar).
-          </p>
-        </div>
-        <button
-          v-if="canEdit"
-          type="button"
-          class="btn-primary shrink-0"
-          :disabled="routingLoading || geocodedCount < 2"
-          @click="onCalculateRoute"
-        >
-          {{ routingLoading ? 'Berechne…' : 'Route berechnen' }}
-        </button>
-      </div>
+    <DispatcherTourRoutePanel
+      :stops="form.stops"
+      :route-coordinates="routeCoordinates"
+      :route-stats="routeStats"
+      :route-error="routeError"
+      :routing-loading="routingLoading"
+      :geocoded-count="geocodedCount"
+      :can-edit="canEdit"
+      @calculate-route="onCalculateRoute"
+    />
 
-      <div
-        v-if="routeError"
-        class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
-      >
-        {{ routeError }}
-      </div>
+    <DispatcherTourAssignmentSection
+      v-model:driver-id="form.driverId"
+      v-model:vehicle-id="form.vehicleId"
+      :result="assignmentResult"
+      :loading="assignmentLoading"
+      :drivers="drivers"
+      :vehicles="vehicles"
+      :can-edit="canEdit"
+    />
 
-      <div v-if="routeStats" class="flex flex-wrap gap-2 text-xs">
-        <span class="rounded-md bg-brand-500/15 px-2 py-1 text-brand-300">
-          {{ routeStats.totalDistanceKm }} km
-        </span>
-        <span class="rounded-md bg-brand-500/15 px-2 py-1 text-brand-300">
-          {{ minutesToRoundedHours(routeStats.totalDrivingMinutes) }} Lenkzeit
-        </span>
-      </div>
-
-      <ClientOnly>
-        <DispatcherTourMap :stops="form.stops" :route-coordinates="routeCoordinates" />
-      </ClientOnly>
-    </div>
-
-    <div class="surface-card p-5">
-      <DispatcherAssignmentPanel
-        v-model:driver-id="form.driverId"
-        v-model:vehicle-id="form.vehicleId"
-        :result="assignmentResult"
-        :loading="assignmentLoading"
-        :drivers="drivers"
-        :vehicles="vehicles"
-        :can-edit="canEdit"
-      />
-    </div>
-
-    <div class="surface-card p-5">
-      <DispatcherCompliancePanel
-        :result="assignmentResult?.compliance ?? null"
-        :loading="assignmentLoading"
-      />
-    </div>
-
-    <div class="grid gap-6 lg:grid-cols-5">
-      <div class="surface-card space-y-4 p-5 lg:col-span-2">
-        <h2 class="text-sm font-semibold text-white">Stammdaten</h2>
-
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Typ</label>
-          <select v-model="form.type" :disabled="!canEdit || !isNew" class="input-field">
-            <option v-for="t in TOUR_TYPES" :key="t" :value="t">{{ TOUR_TYPE_LABELS[t] }}</option>
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Name</label>
-          <input v-model="form.name" required :disabled="!canEdit" class="input-field">
-        </div>
-
-        <div class="grid gap-3 sm:grid-cols-2">
-          <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400">Datum</label>
-            <input v-model="form.date" type="date" required :disabled="!canEdit" class="input-field">
-          </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs text-slate-400">Status</label>
-            <select v-model="form.status" :disabled="!canEdit" class="input-field">
-              <option v-for="s in TOUR_STATUSES" :key="s" :value="s">{{ TOUR_STATUS_LABELS[s] }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div v-if="form.type === 'line'" class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Linienlänge (km)</label>
-          <input v-model="form.lineLengthKm" type="number" min="0" step="0.1" :disabled="!canEdit" class="input-field">
-        </div>
-
-        <div v-if="complianceProfile" class="rounded-xl border border-brand-500/20 bg-brand-500/10 px-3 py-2 text-xs text-brand-200">
-          Compliance: {{ COMPLIANCE_PROFILE_LABELS[complianceProfile as keyof typeof COMPLIANCE_PROFILE_LABELS] }}
-        </div>
-
-        <div class="space-y-1.5">
-          <label class="block text-xs text-slate-400">Notizen</label>
-          <textarea v-model="form.notes" rows="3" :disabled="!canEdit" class="input-field resize-none" />
-        </div>
-
-        <div v-if="canEdit" class="flex flex-wrap gap-2 pt-2">
-          <button type="button" class="btn-primary" :disabled="saving" @click="onSave">
-            {{ saving ? 'Speichern…' : 'Speichern' }}
-          </button>
-          <button v-if="!isNew" type="button" class="btn-ghost !text-red-300" @click="onDelete">
-            Löschen
-          </button>
-        </div>
-      </div>
-
-      <div class="surface-card p-5 lg:col-span-3">
-        <DispatcherTourStopEditor v-model="form.stops" :disabled="!canEdit" />
-      </div>
-    </div>
+    <DispatcherTourEditorForm
+      v-model="form"
+      :can-edit="canEdit"
+      :is-new="isNew"
+      :compliance-profile="complianceProfile"
+      :saving="saving"
+      @save="onSave"
+      @delete="onDelete"
+    />
   </div>
 </template>

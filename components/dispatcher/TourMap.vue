@@ -97,7 +97,8 @@ function fitBounds(routeCoords?: [number, number][]) {
 
   if (points.length === 0) return
   if (points.length === 1) {
-    map.setCenter(points[0])
+    const center = points[0]!
+    map.setCenter(center)
     map.setZoom(12)
     return
   }

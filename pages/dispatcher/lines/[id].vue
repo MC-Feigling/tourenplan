@@ -35,20 +35,35 @@ const form = ref({
 const saveError = ref<string | null>(null)
 const saving = ref(false)
 
-if (!isNew.value) {
-  const apiFetch = useApiFetch()
-  const res = await apiFetch<{ item: typeof form.value & { id: string } }>(`/api/line-templates/${id.value}`, {
-    credentials: 'include',
-  })
-  form.value = {
-    name: res.item.name,
-    lineLengthKm: res.item.lineLengthKm,
-    weekdays: res.item.weekdays,
-    defaultDepartureTime: res.item.defaultDepartureTime,
-    defaultStops: res.item.defaultStops,
-    active: res.item.active,
-  }
-}
+const { data: existingLine, pending, error: loadError } = await useAsyncData(
+  () => `dispatcher-line-${id.value}`,
+  async () => {
+    if (isNew.value) return null
+    const apiFetch = useApiFetch()
+    const res = await apiFetch<{ item: typeof form.value & { id: string } }>(`/api/line-templates/${id.value}`, {
+      credentials: 'include',
+    })
+    return res.item
+  },
+  { watch: [id] },
+)
+
+watch(
+  existingLine,
+  (line) => {
+    if (line) {
+      form.value = {
+        name: line.name,
+        lineLengthKm: line.lineLengthKm,
+        weekdays: line.weekdays,
+        defaultDepartureTime: line.defaultDepartureTime,
+        defaultStops: line.defaultStops,
+        active: line.active,
+      }
+    }
+  },
+  { immediate: true },
+)
 
 function toggleWeekday(day: number) {
   const set = new Set(form.value.weekdays)
@@ -108,11 +123,21 @@ useHead({ title: isNew.value ? 'Linie anlegen' : form.value.name })
       </template>
     </AdminPageHeader>
 
-    <div v-if="saveError" class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-      {{ saveError }}
+    <div v-if="pending && !existingLine" class="text-sm text-slate-400">Laden…</div>
+
+    <div
+      v-else-if="loadError"
+      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+    >
+      Linie konnte nicht geladen werden
     </div>
 
-    <form class="surface-card space-y-5 p-5" @submit.prevent="onSave">
+    <template v-else>
+      <div v-if="saveError" class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        {{ saveError }}
+      </div>
+
+      <form class="surface-card space-y-5 p-5" @submit.prevent="onSave">
       <div class="grid gap-4 sm:grid-cols-2">
         <div class="space-y-1.5">
           <label class="block text-xs text-slate-400">Name</label>
@@ -191,6 +216,7 @@ useHead({ title: isNew.value ? 'Linie anlegen' : form.value.name })
       <button type="submit" class="btn-primary" :disabled="saving || form.weekdays.length === 0">
         {{ saving ? 'Speichern…' : 'Speichern' }}
       </button>
-    </form>
+      </form>
+    </template>
   </div>
 </template>

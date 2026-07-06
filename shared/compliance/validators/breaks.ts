@@ -37,7 +37,9 @@ function qualifiesSplitBreak(parts: number[], rules: BreakProfileRules): boolean
 
   if (rules.allowThreePartLine) {
     const sorted = [...parts].sort((a, b) => b - a)
-    if (sorted.length >= 2 && sorted[0] >= LINE_50KM.BREAK_LONG_STOP_MIN && sorted[1] >= LINE_50KM.BREAK_LONG_STOP_MIN) {
+    const longest = sorted[0]
+    const secondLongest = sorted[1]
+    if (longest !== undefined && secondLongest !== undefined && longest >= LINE_50KM.BREAK_LONG_STOP_MIN && secondLongest >= LINE_50KM.BREAK_LONG_STOP_MIN) {
       return true
     }
     if (sorted.length >= 3 && sorted.every((p) => p >= BREAK.SPLIT_LINE_3_PART_MIN)) {

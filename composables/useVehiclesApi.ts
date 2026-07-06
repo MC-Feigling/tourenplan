@@ -1,4 +1,5 @@
 import type { PublicVehicle } from '~/shared/types/staff'
+import { extractError } from '~/shared/utils/apiError'
 import type { VehicleClass, VehicleStatus, TachoType, VehicleFeature } from '~/shared/constants/vehicles'
 
 export type VehicleFormState = {
@@ -144,9 +145,4 @@ export function useVehiclesApi() {
   }
 
   return { loading, error, list, get, create, update, remove }
-}
-
-function extractError(e: unknown): string {
-  const err = e as { data?: { statusMessage?: string }; message?: string }
-  return err.data?.statusMessage ?? err.message ?? 'Unbekannter Fehler'
 }

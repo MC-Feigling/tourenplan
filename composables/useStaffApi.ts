@@ -1,4 +1,5 @@
 import type { PublicStaffMember, PublicLeaveRequest } from '~/shared/types/staff'
+import { extractError } from '~/shared/utils/apiError'
 import type { StaffJobRole, LicenseClass, StaffQualification, EmploymentType, LeaveType } from '~/shared/constants/staff'
 
 export type StaffFormState = {
@@ -158,9 +159,4 @@ export function useStaffApi() {
   }
 
   return { loading, error, list, get, create, update, remove, addLeave, removeLeave }
-}
-
-function extractError(e: unknown): string {
-  const err = e as { data?: { statusMessage?: string }; message?: string }
-  return err.data?.statusMessage ?? err.message ?? 'Unbekannter Fehler'
 }

@@ -1,6 +1,7 @@
 import type { ComplianceValidationResult } from '~/shared/compliance/types'
 import { resolveComplianceProfile } from '~/shared/constants/compliance'
 import type { TourFormState } from '~/composables/useToursApi'
+import { extractError } from '~/shared/utils/apiError'
 
 export function useComplianceApi() {
   const loading = ref(false)
@@ -40,7 +41,7 @@ export function useComplianceApi() {
         credentials: 'include',
       })
     } catch (e: unknown) {
-      error.value = extractError(e)
+      error.value = extractError(e, 'Validierung fehlgeschlagen')
       throw e
     } finally {
       loading.value = false
@@ -48,9 +49,4 @@ export function useComplianceApi() {
   }
 
   return { loading, error, validateTour }
-}
-
-function extractError(e: unknown): string {
-  const err = e as { data?: { statusMessage?: string }; message?: string }
-  return err.data?.statusMessage ?? err.message ?? 'Validierung fehlgeschlagen'
 }

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { COMPLIANCE_PROFILE_LABELS } from '~/shared/constants/compliance'
-import { TOUR_TYPE_LABELS, TOUR_STATUS_LABELS } from '~/shared/constants/tours'
 import type { AssignmentDragKind } from '~/shared/assignment/dragPayload'
 import { readDragPayload, setDragPayload } from '~/shared/assignment/dragPayload'
 import type { AssignmentResources } from '~/shared/assignment/weekSummary'
@@ -110,13 +108,6 @@ function onCardClick() {
   if (!isTapTarget.value) return
   emit('tapAssign', { tourId: props.tour.id })
 }
-
-function dropZoneClass(kind: AssignmentDragKind): string {
-  const active = dropTarget.value === kind
-  return active
-    ? 'border-brand-500/50 bg-brand-500/10'
-    : 'border-white/10 bg-white/[0.03] hover:border-white/20'
-}
 </script>
 
 <template>
@@ -128,102 +119,23 @@ function dropZoneClass(kind: AssignmentDragKind): string {
     ]"
     @click="onCardClick"
   >
-    <div class="flex items-start justify-between gap-2">
-      <div class="min-w-0 flex items-start gap-2">
-        <span
-          class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ring-2"
-          :class="dotClass"
-          :title="assignmentStatus ?? 'Ungeprüft'"
-          aria-hidden="true"
-        />
-        <div class="min-w-0">
-          <p class="truncate text-sm font-semibold text-white">{{ tour.name }}</p>
-          <p class="mt-0.5 text-xs text-slate-400">
-            {{ TOUR_TYPE_LABELS[tour.type] }} · {{ tour.stops[0]?.plannedArrival ?? '—' }}
-          </p>
-        </div>
-      </div>
-      <div class="flex shrink-0 items-center gap-1">
-        <span class="rounded-full bg-slate-700/60 px-2 py-0.5 text-[10px] text-slate-300">
-          {{ TOUR_STATUS_LABELS[tour.status] }}
-        </span>
-        <NuxtLink
-          :to="`/dispatcher/tours/${tour.id}`"
-          class="rounded-md px-1.5 py-0.5 text-[10px] text-brand-400 no-underline hover:bg-brand-500/10"
-          @click.stop
-        >
-          →
-        </NuxtLink>
-      </div>
-    </div>
+    <DispatcherTourCardHeader
+      :tour="tour"
+      :dot-class="dotClass"
+      :assignment-status="assignmentStatus"
+    />
 
-    <div class="mt-2 grid gap-1.5">
-      <div
-        class="flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[10px] transition-colors"
-        :class="dropZoneClass('driver')"
-        @dragover="onDragOver($event, 'driver')"
-        @dragleave="onDragLeave('driver')"
-        @drop="onDrop($event, 'driver')"
-      >
-        <span class="shrink-0 text-slate-500">Fahrer</span>
-        <span
-          v-if="driverName"
-          class="min-w-0 flex-1 truncate font-medium text-white"
-          :draggable="!readonly"
-          @dragstart="onAssignedDragStart($event, 'driver')"
-          @click.stop
-        >
-          {{ driverName }}
-        </span>
-        <span v-else class="flex-1 text-slate-600">— hierher ziehen —</span>
-        <button
-          v-if="driverName && !readonly"
-          type="button"
-          class="shrink-0 text-slate-500 hover:text-red-300"
-          aria-label="Fahrer entfernen"
-          @click.stop="onUnassign('driver')"
-        >
-          ×
-        </button>
-      </div>
-
-      <div
-        class="flex items-center gap-1 rounded-lg border px-2 py-1.5 text-[10px] transition-colors"
-        :class="dropZoneClass('vehicle')"
-        @dragover="onDragOver($event, 'vehicle')"
-        @dragleave="onDragLeave('vehicle')"
-        @drop="onDrop($event, 'vehicle')"
-      >
-        <span class="shrink-0 text-slate-500">Fahrzeug</span>
-        <span
-          v-if="vehicleLabel"
-          class="min-w-0 flex-1 truncate font-medium text-white"
-          :draggable="!readonly"
-          @dragstart="onAssignedDragStart($event, 'vehicle')"
-          @click.stop
-        >
-          {{ vehicleLabel }}
-        </span>
-        <span v-else class="flex-1 text-slate-600">— hierher ziehen —</span>
-        <button
-          v-if="vehicleLabel && !readonly"
-          type="button"
-          class="shrink-0 text-slate-500 hover:text-red-300"
-          aria-label="Fahrzeug entfernen"
-          @click.stop="onUnassign('vehicle')"
-        >
-          ×
-        </button>
-      </div>
-    </div>
-
-    <div class="mt-2 flex flex-wrap gap-2 text-[10px]">
-      <span class="rounded-md bg-brand-500/10 px-1.5 py-0.5 text-brand-300">
-        {{ tour.totalDrivingMinutes }} min Lenkzeit
-      </span>
-      <span class="rounded-md bg-slate-700/50 px-1.5 py-0.5 text-slate-400">
-        {{ COMPLIANCE_PROFILE_LABELS[tour.complianceProfile] }}
-      </span>
-    </div>
+    <DispatcherTourCardAssignment
+      :tour="tour"
+      :driver-name="driverName"
+      :vehicle-label="vehicleLabel"
+      :readonly="readonly"
+      :drop-target="dropTarget"
+      @drag-over="onDragOver"
+      @drag-leave="onDragLeave"
+      @drop="onDrop"
+      @assigned-drag-start="onAssignedDragStart"
+      @unassign="onUnassign"
+    />
   </article>
 </template>

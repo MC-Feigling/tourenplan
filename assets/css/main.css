@@ -1,54 +1,117 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  html {
-    @apply antialiased text-slate-100;
-    background-color: #0f172a;
-    color-scheme: dark;
-  }
-
-  body {
-    background-color: #0f172a;
-  }
-
-  :root {
-    --color-bg: #0f172a;
-    --color-surface: #1e293b;
-    --color-border: rgba(255, 255, 255, 0.08);
-    --color-primary: #f59e0b;
-    --color-text-1: #f1f5f9;
-    --color-text-2: #94a3b8;
-  }
-
-  input:not([type='checkbox']):not([type='radio']),
-  textarea {
-    caret-color: var(--color-primary);
-  }
-
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--color-text-1) !important;
-    caret-color: var(--color-primary);
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #f1f5f9;
+  background-color: #0f172a;
+  color-scheme: dark;
 }
 
-@layer components {
-  .surface-card {
-    @apply rounded-2xl border border-white/10 bg-surface backdrop-blur-sm shadow-xl;
-  }
+body {
+  background-color: #0f172a;
+}
 
-  .btn-primary {
-    @apply inline-flex min-h-touch min-w-touch items-center justify-center rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-brand-400 active:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50;
-  }
+:root {
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-primary: #f59e0b;
+  --color-text-1: #f1f5f9;
+  --color-text-2: #94a3b8;
+}
 
-  .btn-ghost {
-    @apply inline-flex min-h-touch items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 active:bg-white/15;
-  }
+input:not([type='checkbox']):not([type='radio']),
+textarea {
+  caret-color: var(--color-primary);
+}
 
-  .input-field {
-    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-brand-500/50 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
-  }
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text-1) !important;
+  caret-color: var(--color-primary);
+}
+
+.surface-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #1e293b;
+  backdrop-filter: blur(4px);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.btn-primary {
+  display: inline-flex;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background-color: #f59e0b;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  transition-property: background-color, color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-primary:hover {
+  background-color: #fbbf24;
+}
+
+.btn-primary:active {
+  background-color: #d97706;
+}
+
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  transition-property: background-color, color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-ghost:active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.input-field {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #fff;
+}
+
+.input-field::placeholder {
+  color: #64748b;
+}
+
+.input-field:focus {
+  border-color: rgba(245, 158, 11, 0.5);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
 }

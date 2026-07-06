@@ -1,9 +1,11 @@
 import type { ComplianceValidationResult } from '~/shared/compliance/types'
+import { extractError } from '~/shared/utils/apiError'
 import { resolveComplianceProfile } from '~/shared/constants/compliance'
 import type {
   AssignmentValidationResult,
   OverallAssignmentStatus,
 } from '~/shared/assignment/types'
+import type { AssignmentResources } from '~/shared/assignment/weekSummary'
 import type { TourFormState } from '~/composables/useToursApi'
 
 export type AssignmentCheckResult = {
@@ -18,29 +20,7 @@ export function useAssignmentApi() {
 
   async function loadResources(from: string, to: string) {
     const apiFetch = useApiFetch()
-    return await apiFetch<{
-      drivers: Array<{
-        id: string
-        fullName: string
-        active: boolean
-        licenseClasses: string[]
-        onLeave: boolean
-        leaveTypeLabel?: string
-      }>
-      vehicles: Array<{
-        id: string
-        name: string
-        plateNumber: string
-        status: string
-      }>
-      leaveRequests: Array<{
-        id: string
-        staffMemberId: string
-        startDate: string
-        endDate: string
-        type: string
-      }>
-    }>('/api/assignment/resources', {
+    return await apiFetch<AssignmentResources>('/api/assignment/resources', {
       query: { from, to },
       credentials: 'include',
     })
@@ -98,9 +78,4 @@ export function useAssignmentApi() {
   }
 
   return { loading, error, loadResources, validateTour }
-}
-
-function extractError(e: unknown): string {
-  const err = e as { data?: { statusMessage?: string }; message?: string }
-  return err.data?.statusMessage ?? err.message ?? 'Unbekannter Fehler'
 }

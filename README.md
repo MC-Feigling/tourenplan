@@ -7,9 +7,9 @@ Tourenplanung für Busunternehmen — Fuhrpark, Mitarbeiter, Touren, Lenkzeit-Co
 ```bash
 cp .env.example .env
 docker compose up -d
-npm install
-npm run db:push
-npm run dev
+bun install
+bun run db:push
+bun run dev
 ```
 
 Erster Login: `admin@localhost.local` / `admin-change-me` (siehe `.env.example`)
@@ -28,7 +28,7 @@ cp .env.example .env
 # DOMAIN, POSTGRES_PASSWORD, NUXT_JWT_SECRET, NUXT_BOOTSTRAP_* setzen
 
 docker compose -f docker-compose.prod.yml up -d postgres
-npm run db:migrate
+bun run db:migrate
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
@@ -44,8 +44,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 ## Tests
 
 ```bash
-npm test
-npm run build
+bun run test
+bun run build
 ```
 
 ## Stack

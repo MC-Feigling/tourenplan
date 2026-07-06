@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ISO_WEEKDAYS, WEEKDAY_LABELS } from '~/shared/constants/tours'
-import type { PublicLineTemplate } from '~/shared/types/tours'
+import { WEEKDAY_LABELS } from '~/shared/constants/tours'
 
 definePageMeta({
   middleware: 'auth',
@@ -8,18 +7,18 @@ definePageMeta({
 })
 
 const api = useToursApi()
+const toursApiError = api.error
 const auth = useAuthStore()
 const canEdit = computed(() => auth.hasRole('admin', 'dispatcher'))
 
-const items = ref<PublicLineTemplate[]>([])
-const loadError = ref<string | null>(null)
+const { data, pending, error } = useAsyncData(
+  'dispatcher-lines',
+  () => api.listLineTemplates(),
+  { lazy: true },
+)
 
-try {
-  const res = await api.listLineTemplates()
-  items.value = res.items
-} catch {
-  loadError.value = api.error.value
-}
+const isInitialLoading = computed(() => pending.value && !data.value)
+const items = computed(() => data.value?.items ?? [])
 
 useHead({ title: 'Linien' })
 </script>
@@ -33,8 +32,13 @@ useHead({ title: 'Linien' })
       </template>
     </AdminPageHeader>
 
-    <div v-if="loadError" class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-      {{ loadError }}
+    <div v-if="isInitialLoading" class="text-sm text-slate-400">Laden…</div>
+
+    <div
+      v-else-if="error || toursApiError"
+      class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+    >
+      {{ toursApiError ?? 'Linien konnten nicht geladen werden' }}
     </div>
 
     <UiEmptyState

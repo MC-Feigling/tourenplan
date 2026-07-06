@@ -34,57 +34,68 @@ useHead({ title: 'Anmelden' })
       <p class="text-sm text-slate-400">Tourenplanung für Busunternehmen</p>
     </div>
 
-    <div class="surface-card space-y-5 p-6">
-      <div
+    <UCard
+      variant="subtle"
+      :ui="{
+        root: 'rounded-2xl border border-white/10 bg-surface/80 backdrop-blur-sm shadow-xl ring-0',
+        body: 'space-y-5 p-6 sm:p-6',
+      }"
+    >
+      <UAlert
         v-if="showBootstrapHint"
-        class="rounded-xl border border-brand-500/30 bg-brand-500/10 px-4 py-3 text-xs text-brand-200"
+        color="primary"
+        variant="subtle"
+        title="Erstes Setup"
         role="status"
       >
-        <p class="font-semibold">Erstes Setup</p>
-        <p class="mt-1 text-brand-300/80">
+        <template #description>
           Melde dich mit <code class="rounded bg-black/20 px-1">admin@localhost.local</code> an.
-        </p>
-      </div>
+        </template>
+      </UAlert>
 
-      <div
+      <UAlert
         v-if="auth.error"
-        class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+        color="error"
+        variant="subtle"
+        :title="auth.error"
         role="alert"
-      >
-        {{ auth.error }}
-      </div>
+      />
 
       <form class="space-y-4" @submit.prevent="onSubmit">
-        <div class="space-y-1.5">
-          <label class="block text-xs font-medium text-slate-400" for="email">E-Mail</label>
-          <input
+        <UFormField label="E-Mail" name="email" size="md">
+          <UInput
             id="email"
             v-model="email"
             type="email"
             required
             autocomplete="email"
             placeholder="name@firma.de"
-            class="input-field"
-          >
-        </div>
+            class="w-full"
+          />
+        </UFormField>
 
-        <div class="space-y-1.5">
-          <label class="block text-xs font-medium text-slate-400" for="password">Passwort</label>
-          <input
+        <UFormField label="Passwort" name="password" size="md">
+          <UInput
             id="password"
             v-model="password"
             type="password"
             required
             autocomplete="current-password"
             placeholder="••••••••"
-            class="input-field"
-          >
-        </div>
+            class="w-full"
+          />
+        </UFormField>
 
-        <button type="submit" class="btn-primary w-full" :disabled="auth.loading">
-          {{ auth.loading ? 'Anmelden…' : 'Anmelden' }}
-        </button>
+        <UButton
+          type="submit"
+          block
+          color="primary"
+          size="lg"
+          :loading="auth.loading"
+        >
+          Anmelden
+        </UButton>
       </form>
-    </div>
+    </UCard>
   </div>
 </template>

@@ -1,4 +1,5 @@
 import type { DriverTour } from '~/shared/types/driver'
+import { extractError } from '~/shared/utils/apiError'
 import type { TourStatus } from '~/shared/constants/tours'
 import {
   DRIVER_STATUS_ACTION_LABELS,
@@ -70,9 +71,4 @@ export function useDriverApi() {
   }
 
   return { loading, error, listRange, get, updateStatus, nextStatus, statusActionLabel }
-}
-
-function extractError(e: unknown): string {
-  const err = e as { data?: { statusMessage?: string }; message?: string }
-  return err.data?.statusMessage ?? err.message ?? 'Unbekannter Fehler'
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { STAFF_JOB_ROLE_LABELS } from '~/shared/constants/staff'
-import type { PublicStaffMember } from '~/shared/types/staff'
 
 definePageMeta({
   middleware: 'auth',
@@ -8,20 +7,16 @@ definePageMeta({
 })
 
 const api = useStaffApi()
-const items = ref<PublicStaffMember[]>([])
-const loadError = ref<string | null>(null)
+const staffApiError = api.error
 
-async function load() {
-  loadError.value = null
-  try {
-    const res = await api.list()
-    items.value = res.items
-  } catch {
-    loadError.value = api.error.value
-  }
-}
+const { data, pending, error } = useAsyncData(
+  'admin-staff',
+  () => api.list(),
+  { lazy: true },
+)
 
-await load()
+const isInitialLoading = computed(() => pending.value && !data.value)
+const items = computed(() => data.value?.items ?? [])
 
 useHead({ title: 'Mitarbeiter' })
 </script>
@@ -36,16 +31,18 @@ useHead({ title: 'Mitarbeiter' })
       </template>
     </AdminPageHeader>
 
+    <div v-if="isInitialLoading" class="text-sm text-slate-400">Laden…</div>
+
     <div
-      v-if="loadError"
+      v-else-if="error || staffApiError"
       class="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300"
       role="alert"
     >
-      {{ loadError }}
+      {{ staffApiError ?? 'Mitarbeiter konnten nicht geladen werden' }}
     </div>
 
     <UiEmptyState
-      v-if="!api.loading && items.length === 0"
+      v-else-if="items.length === 0"
       title="Noch keine Mitarbeiter"
       description="Lege den ersten Fahrer oder Disponenten an."
     >

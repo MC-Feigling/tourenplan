@@ -107,7 +107,7 @@ export function resolveTourCompliance(
 }
 
 export function addMinutesToTime(time: string, minutes: number): string {
-  const [h, m] = time.split(':').map(Number)
+  const [h = 0, m = 0] = time.split(':').map(Number)
   const total = h * 60 + m + minutes
   const wrapped = ((total % (24 * 60)) + 24 * 60) % (24 * 60)
   const hh = Math.floor(wrapped / 60)
