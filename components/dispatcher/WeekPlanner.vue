@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AssignmentDragKind } from '~/shared/assignment/dragPayload'
+import { aggregateWeekConflicts } from '~/shared/assignment/weekConflicts'
 import type { AssignmentResources } from '~/shared/assignment/weekSummary'
 import type { PublicTour } from '~/shared/types/tours'
 
@@ -31,6 +32,22 @@ const selectedDate = ref('')
 const tapMode = ref<AssignmentDragKind | null>(null)
 const selectedResourceId = ref<string | null>(null)
 const pendingTodaySelect = ref(false)
+const highlightConflicts = ref(false)
+
+const weekConflicts = computed(() =>
+  aggregateWeekConflicts(props.tours, props.assignmentResources),
+)
+
+const conflictDateLabels = computed(() =>
+  weekConflicts.value.dates.map((date) => {
+    const day = props.weekDays.find((item) => item.date === date)
+    return day?.label?.slice(0, 2) ?? date.slice(5)
+  }),
+)
+
+const highlightedTourIds = computed(() =>
+  highlightConflicts.value ? new Set(weekConflicts.value.tourIds) : new Set<string>(),
+)
 
 const { overview, initSelectedDate } = useResourceAvailability({
   tours: toursRef,
@@ -177,7 +194,40 @@ async function onSidebarUnassign(payload: {
       :tone="assignmentActions.feedbackTone.value === 'error' ? 'error' : 'success'"
     />
 
+    <DispatcherWeekConflictSummary
+      v-if="tours.length > 0"
+      :count="weekConflicts.count"
+      :date-labels="conflictDateLabels"
+      :active="highlightConflicts"
+      @toggle="highlightConflicts = !highlightConflicts"
+    />
+
+    <UiEmptyState
+      v-if="tours.length === 0"
+      title="Keine Touren in dieser Woche"
+      description="Generiere Linien oder lege einen Ausflug an."
+    >
+      <template #icon>
+        <svg class="h-7 w-7 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+        </svg>
+      </template>
+      <template #action>
+        <div class="flex flex-wrap justify-center gap-2">
+          <UButton to="/dispatcher/lines" variant="ghost" color="neutral">Linien</UButton>
+          <UButton
+            v-if="canEdit"
+            :to="`/dispatcher/tours/new?date=${selectedDate || weekStart}`"
+            color="primary"
+          >
+            + Ausflug
+          </UButton>
+        </div>
+      </template>
+    </UiEmptyState>
+
     <DispatcherWeekPlannerGrid
+      v-if="tours.length > 0"
       :overview="overview"
       :selected-date-label="selectedDateLabel"
       :week-days="weekDays"
@@ -189,6 +239,7 @@ async function onSidebarUnassign(payload: {
       :assigning-tour-id="assignmentActions.assigningTourId.value"
       :tap-mode="tapMode"
       :selected-resource-id="selectedResourceId"
+      :highlighted-tour-ids="highlightedTourIds"
       @select-resource="onSelectResource"
       @sidebar-unassign="onSidebarUnassign"
       @select-day="selectDay"

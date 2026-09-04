@@ -13,6 +13,7 @@ const props = defineProps<{
   assigning?: boolean
   tapMode?: AssignmentDragKind | null
   selectedResourceId?: string | null
+  highlighted?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -116,6 +117,7 @@ function onCardClick() {
     :class="[
       isTapTarget ? 'cursor-pointer ring-1 ring-brand-500/40' : '',
       assigning ? 'opacity-60' : '',
+      highlighted ? 'ring-2 ring-amber-400/50 border-amber-500/30' : '',
     ]"
     @click="onCardClick"
   >

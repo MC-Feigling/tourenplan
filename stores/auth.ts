@@ -68,5 +68,25 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value !== null && roles.includes(user.value.role)
   }
 
-  return { user, loading, error, isAuthenticated, homePath, fetchMe, login, logout, hasRole }
+  async function changePassword(currentPassword: string, newPassword: string) {
+    const apiFetch = useApiFetch()
+    await apiFetch('/api/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword, newPassword },
+      credentials: 'include',
+    })
+  }
+
+  return {
+    user,
+    loading,
+    error,
+    isAuthenticated,
+    homePath,
+    fetchMe,
+    login,
+    logout,
+    hasRole,
+    changePassword,
+  }
 })

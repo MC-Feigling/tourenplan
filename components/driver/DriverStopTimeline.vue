@@ -1,10 +1,24 @@
 <script setup lang="ts">
 import { STOP_TYPE_LABELS } from '~/shared/constants/tours'
 import type { PublicTourStop } from '~/shared/types/tours'
+import { buildMapsNavUrl } from '~/shared/utils/mapsNav'
 
-defineProps<{
+const props = defineProps<{
   stops: PublicTourStop[]
 }>()
+
+const navUrlsByStopId = computed(() => {
+  const map = new Map<string, string>()
+  for (const stop of props.stops) {
+    const url = buildMapsNavUrl({
+      lat: stop.lat,
+      lng: stop.lng,
+      address: stop.address,
+    })
+    if (url) map.set(stop.id, url)
+  }
+  return map
+})
 </script>
 
 <template>
@@ -41,6 +55,15 @@ defineProps<{
             {{ STOP_TYPE_LABELS[stop.stopType] }}
           </span>
         </div>
+        <a
+          v-if="navUrlsByStopId.get(stop.id)"
+          :href="navUrlsByStopId.get(stop.id)"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-2 inline-flex text-xs font-medium text-brand-300 underline-offset-2 hover:underline"
+        >
+          Navigieren
+        </a>
       </div>
     </li>
   </ol>

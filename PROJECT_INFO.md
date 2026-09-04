@@ -44,6 +44,10 @@ Web-App für Busunternehmen (Kleinbetrieb): Tourenplanung, Fuhrpark, Mitarbeiter
 6. Zuweisung + Ampel ✅
 7. Fahrer-PWA + Prod-Deploy ✅
 
+## Post-MVP
+
+- UX-Fundament: Disposition Empty/Skeleton/Konflikte, Fahrer Maps+Status, Passwort ändern ✅
+
 ## Nicht im Scope (MVP)
 
 - Tachograph-Anbindung
