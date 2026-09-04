@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
         context = {
           driverDays: weekContext.weekDays,
           previousWeekDrivingMinutes: weekContext.previousWeekDrivingMinutes,
+          previousDay: weekContext.previousDay,
         }
       }
       compliance = validateTourCompliance(input, context)
@@ -72,6 +73,7 @@ export default defineEventHandler(async (event) => {
       context = {
         driverDays: weekContext.weekDays,
         previousWeekDrivingMinutes: weekContext.previousWeekDrivingMinutes,
+        previousDay: weekContext.previousDay,
       }
     }
     compliance = validateTourCompliance(input, context)

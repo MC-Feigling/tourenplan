@@ -46,6 +46,7 @@ export default defineEventHandler(async (event) => {
     context = {
       driverDays: weekContext.weekDays,
       previousWeekDrivingMinutes: weekContext.previousWeekDrivingMinutes,
+      previousDay: weekContext.previousDay,
     }
   }
 

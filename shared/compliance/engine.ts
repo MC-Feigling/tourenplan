@@ -3,21 +3,25 @@ import type {
   DriverDayDriving,
   TourComplianceInput,
 } from './types'
-import { buildTourTimeline, calculateTourWorkMinutes } from './timeline'
+import { buildTourTimeline, calculateTourWorkMinutes, combineShiftBounds, getTourShiftBounds, mergeDayTimeline } from './timeline'
 import { validateDrivingBreaks } from './validators/breaks'
+import { validateDailyRest } from './validators/daily-rest'
+import { validateWeeklyRest } from './validators/weekly-rest'
 import {
   validateDriverAggregates,
   validateFortnightDriving,
   validateTourDailyDriving,
 } from './validators/driving-limits'
-import { validateWorkingTime } from './validators/working-time'
+import { validateDutyTime, validateWorkingTime } from './validators/working-time'
 import { COMPLIANCE_ISSUE_CODES } from './constants'
+import { addDays, diffMinutes } from '../utils/time'
 
 export function validateTourCompliance(
   tour: TourComplianceInput,
   context?: {
     driverDays?: DriverDayDriving[]
     previousWeekDrivingMinutes?: number
+    previousDay?: DriverDayDriving | null
   },
 ): ComplianceValidationResult {
   const issues = []
@@ -30,12 +34,34 @@ export function validateTourCompliance(
     })
   }
 
-  const timeline = buildTourTimeline(tour)
   const workMinutes = tour.workMinutes || calculateTourWorkMinutes(tour.stops)
+  const tourBounds = getTourShiftBounds(tour.stops)
+  const day = context?.driverDays?.find((d) => d.date === tour.date)
+  const dayBounds =
+    day?.shiftStart && day.shiftEnd ? { start: day.shiftStart, end: day.shiftEnd } : null
+  const dutyBounds = combineShiftBounds(dayBounds, tourBounds)
+  const dutyMinutes = dutyBounds ? diffMinutes(dutyBounds.start, dutyBounds.end) : workMinutes
+  const timeline =
+    day?.segments.length && tourBounds
+      ? mergeDayTimeline(day.segments, {
+          start: tourBounds.start,
+          end: tourBounds.end,
+          timeline: buildTourTimeline(tour),
+        })
+      : buildTourTimeline(tour)
 
-  issues.push(...validateTourDailyDriving(tour.totalDrivingMinutes))
   issues.push(...validateDrivingBreaks(timeline, tour.complianceProfile))
   issues.push(...validateWorkingTime(workMinutes, tour.date))
+  issues.push(...validateDutyTime(dutyMinutes, tour.date))
+
+  const previousDate = addDays(tour.date, -1)
+  const previousFromWeek = context?.driverDays?.find((d) => d.date === previousDate)
+  const previousDay = previousFromWeek?.shiftEnd ? previousFromWeek : (context?.previousDay ?? null)
+  if (previousDay?.shiftEnd && tourBounds) {
+    issues.push(
+      ...validateDailyRest(previousDay.date, previousDay.shiftEnd, tour.date, tourBounds.start),
+    )
+  }
 
   let dayDrivingMinutes: number | null = null
   let weekDrivingMinutes: number | null = null
@@ -45,14 +71,17 @@ export function validateTourCompliance(
     issues.push(
       ...validateDriverAggregates(tour.date, tour.totalDrivingMinutes, context.driverDays),
     )
+    issues.push(
+      ...validateWeeklyRest(tour.date, tour.totalDrivingMinutes, context.driverDays),
+    )
 
     const dayBase =
       context.driverDays.find((d) => d.date === tour.date)?.drivingMinutes ?? 0
     dayDrivingMinutes = dayBase + tour.totalDrivingMinutes
 
-    weekDrivingMinutes = context.driverDays.reduce((sum, day) => {
-      const extra = day.date === tour.date ? tour.totalDrivingMinutes : 0
-      return sum + day.drivingMinutes + extra
+    weekDrivingMinutes = context.driverDays.reduce((sum, weekDay) => {
+      const extra = weekDay.date === tour.date ? tour.totalDrivingMinutes : 0
+      return sum + weekDay.drivingMinutes + extra
     }, 0)
 
     if (context.previousWeekDrivingMinutes !== undefined) {
@@ -61,6 +90,8 @@ export function validateTourCompliance(
       )
       fortnightDrivingMinutes = weekDrivingMinutes + context.previousWeekDrivingMinutes
     }
+  } else {
+    issues.push(...validateTourDailyDriving(tour.totalDrivingMinutes))
   }
 
   const status = issues.some((i) => i.severity === 'error')

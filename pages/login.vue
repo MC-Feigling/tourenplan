@@ -8,8 +8,8 @@ const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
 
-const { data: setupStatus } = await useFetch<{ hasUsers: boolean }>('/api/auth/setup-status')
-const showBootstrapHint = computed(() => setupStatus.value && !setupStatus.value.hasUsers)
+const { data: setupStatus } = await useFetch<{ setupAvailable: boolean }>('/api/auth/setup-status')
+const showBootstrapHint = computed(() => setupStatus.value?.setupAvailable === true)
 
 async function onSubmit() {
   const ok = await auth.login(email.value, password.value)
@@ -49,7 +49,7 @@ useHead({ title: 'Anmelden' })
         role="status"
       >
         <template #description>
-          Melde dich mit <code class="rounded bg-black/20 px-1">admin@localhost.local</code> an.
+          Erstes Setup: Zugangsdaten aus der Server-Konfiguration verwenden.
         </template>
       </UAlert>
 

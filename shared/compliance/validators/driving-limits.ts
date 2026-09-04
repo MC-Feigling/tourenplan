@@ -14,8 +14,8 @@ export function validateTourDailyDriving(totalDrivingMinutes: number): Complianc
   } else if (totalDrivingMinutes > DRIVING.MAX_DAILY_MIN) {
     issues.push({
       code: COMPLIANCE_ISSUE_CODES.DAILY_DRIVING_EXCEEDED,
-      severity: 'error',
-      message: `Tageslenkzeit ${formatHours(totalDrivingMinutes)} überschreitet 9h`,
+      severity: 'warning',
+      message: `Tageslenkzeit ${formatHours(totalDrivingMinutes)} überschreitet 9h — 10h max. 2×/Woche`,
       context: { drivingMinutes: totalDrivingMinutes, limitMinutes: DRIVING.MAX_DAILY_MIN },
     })
   }
@@ -41,12 +41,18 @@ export function validateDriverAggregates(
       context: { date: targetDate, drivingMinutes: dayTotal },
     })
   } else if (dayTotal > DRIVING.MAX_DAILY_MIN) {
-    issues.push({
-      code: COMPLIANCE_ISSUE_CODES.DAILY_DRIVING_EXCEEDED,
-      severity: 'warning',
-      message: `Tageslenkzeit am ${targetDate}: ${formatHours(dayTotal)} (max. 9h, 10h max. 2×/Woche)`,
-      context: { date: targetDate, drivingMinutes: dayTotal },
-    })
+    const otherExtensions = weekDays.filter(
+      (day) => day.date !== targetDate && day.drivingMinutes > DRIVING.MAX_DAILY_MIN,
+    ).length
+
+    if (otherExtensions >= DRIVING.MAX_DAILY_EXTENSIONS_PER_WEEK) {
+      issues.push({
+        code: COMPLIANCE_ISSUE_CODES.DAILY_DRIVING_EXCEEDED,
+        severity: 'error',
+        message: `Tageslenkzeit am ${targetDate}: ${formatHours(dayTotal)} — 10h bereits ${otherExtensions}× diese Woche`,
+        context: { date: targetDate, drivingMinutes: dayTotal, extensionsUsed: otherExtensions },
+      })
+    }
   }
 
   const weekTotal = weekDays.reduce((sum, day) => {

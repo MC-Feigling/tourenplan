@@ -18,6 +18,23 @@ export function validateWorkingTime(workMinutes: number, date: string): Complian
   ]
 }
 
+export function validateDutyTime(dutyMinutes: number, date: string): ComplianceIssue[] {
+  if (dutyMinutes <= WORKING_TIME.MAX_DUTY_MIN) return []
+
+  return [
+    {
+      code: COMPLIANCE_ISSUE_CODES.DAILY_DUTY_EXCEEDED,
+      severity: 'error',
+      message: `Einsatzzeit am ${date}: ${formatHours(dutyMinutes)} überschreitet 15h`,
+      context: {
+        date,
+        dutyMinutes,
+        limitMinutes: WORKING_TIME.MAX_DUTY_MIN,
+      },
+    },
+  ]
+}
+
 function formatHours(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60

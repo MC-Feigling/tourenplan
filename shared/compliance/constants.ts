@@ -24,7 +24,10 @@ export const LINE_50KM = {
 
 export const WORKING_TIME = {
   DE_ARBZG_MAX_DAILY_MIN: 600,
+  MAX_DUTY_MIN: 900,
   BREAK_AFTER_WORK_MIN: 360,
+  DAILY_REST_MIN: 660,
+  MAX_WORK_DAYS_PER_WEEK: 6,
 } as const
 
 export const COMPLIANCE_ISSUE_CODES = {
@@ -35,5 +38,8 @@ export const COMPLIANCE_ISSUE_CODES = {
   DRIVING_BLOCK_WITHOUT_BREAK: 'driving_block_without_break',
   INSUFFICIENT_BREAK_SPLIT: 'insufficient_break_split',
   DAILY_WORK_TIME_WARNING: 'daily_work_time_warning',
+  DAILY_DUTY_EXCEEDED: 'daily_duty_exceeded',
+  INSUFFICIENT_DAILY_REST: 'insufficient_daily_rest',
+  WEEKLY_REST_MISSING: 'weekly_rest_missing',
   TOUR_NO_STOPS: 'tour_no_stops',
 } as const

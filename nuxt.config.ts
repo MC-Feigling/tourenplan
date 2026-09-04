@@ -21,10 +21,11 @@ export default defineNuxtConfig({
       process.env.NUXT_DATABASE_URL ||
       process.env.DATABASE_URL ||
       'postgresql://tourenplan:tourenplan_dev@127.0.0.1:5433/tourenplan',
-    jwtSecret: process.env.NUXT_JWT_SECRET || '',
+    jwtSecret: process.env.NUXT_JWT_SECRET ?? '',
     orsApiKey: process.env.NUXT_ORS_API_KEY || '',
     bootstrapAdminEmail: process.env.NUXT_BOOTSTRAP_ADMIN_EMAIL || 'admin@localhost.local',
     bootstrapAdminPassword: process.env.NUXT_BOOTSTRAP_ADMIN_PASSWORD || '',
+    trustProxy: process.env.NUXT_TRUST_PROXY === 'true',
     public: {
       appName: 'Tourenplan',
     },

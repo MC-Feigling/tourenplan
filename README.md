@@ -25,7 +25,7 @@ Erster Login: `admin@localhost.local` / `admin-change-me` (siehe `.env.example`)
 
 ```bash
 cp .env.example .env
-# DOMAIN, POSTGRES_PASSWORD, NUXT_JWT_SECRET, NUXT_BOOTSTRAP_* setzen
+# DOMAIN, POSTGRES_PASSWORD, NUXT_JWT_SECRET (>=32, unique), NUXT_BOOTSTRAP_* (strong) setzen
 
 docker compose -f docker-compose.prod.yml up -d postgres
 bun run db:migrate

@@ -1,13 +1,20 @@
 import { SignJWT, jwtVerify } from 'jose'
 import type { H3Event } from 'h3'
 import { getCookie, setCookie } from 'h3'
+import { assertJwtSecret } from '../../shared/auth/secrets'
 import { AUTH_COOKIE_NAME } from '../../shared/constants/roles'
 
 const TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 
-export async function signAuthToken(userId: string): Promise<string> {
+function getJwtSecretBytes(): Uint8Array {
   const config = useRuntimeConfig()
-  const secret = new TextEncoder().encode(config.jwtSecret)
+  const secret = config.jwtSecret
+  assertJwtSecret(secret, process.env.NODE_ENV === 'production')
+  return new TextEncoder().encode(secret)
+}
+
+export async function signAuthToken(userId: string): Promise<string> {
+  const secret = getJwtSecretBytes()
   return new SignJWT({})
     .setSubject(userId)
     .setProtectedHeader({ alg: 'HS256' })
@@ -18,8 +25,7 @@ export async function signAuthToken(userId: string): Promise<string> {
 
 export async function verifyAuthToken(token: string): Promise<string | null> {
   try {
-    const config = useRuntimeConfig()
-    const secret = new TextEncoder().encode(config.jwtSecret)
+    const secret = getJwtSecretBytes()
     const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] })
     return typeof payload.sub === 'string' ? payload.sub : null
   } catch {

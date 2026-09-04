@@ -36,6 +36,15 @@ export type DriverDayDriving = {
   drivingMinutes: number
   workMinutes: number
   tourIds: string[]
+  shiftStart: string | null
+  shiftEnd: string | null
+  segments: DriverDaySegment[]
+}
+
+export type DriverDaySegment = {
+  start: string
+  end: string
+  timeline: ComplianceTimelineEvent[]
 }
 
 export type ComplianceValidationResult = {

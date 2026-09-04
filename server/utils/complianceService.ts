@@ -3,19 +3,61 @@ import { tourStops, tours } from '../database/schema'
 import { useDb } from './db'
 import { toPublicTour } from './tourHelpers'
 import {
+  buildTourTimeline,
   calculateTourWorkMinutes,
+  combineShiftBounds,
   getAdjacentWeekKey,
   getIsoWeekKey,
+  getTourShiftBounds,
   getWeekDates,
 } from '../../shared/compliance/timeline'
 import type { DriverDayDriving, TourComplianceInput } from '../../shared/compliance/types'
 import type { PublicTour } from '../../shared/types/tours'
+import { addDays } from '../../shared/utils/time'
+
+function emptyDriverDay(date: string): DriverDayDriving {
+  return {
+    date,
+    drivingMinutes: 0,
+    workMinutes: 0,
+    tourIds: [],
+    shiftStart: null,
+    shiftEnd: null,
+    segments: [],
+  }
+}
+
+function addTourToDriverDay(entry: DriverDayDriving, tour: PublicTour, driving: number, work: number): void {
+  entry.drivingMinutes += driving
+  entry.workMinutes += work
+  entry.tourIds.push(tour.id)
+  const bounds = getTourShiftBounds(tour.stops)
+  if (!bounds) return
+
+  const combined = combineShiftBounds(
+    entry.shiftStart && entry.shiftEnd ? { start: entry.shiftStart, end: entry.shiftEnd } : null,
+    bounds,
+  )
+  if (combined) {
+    entry.shiftStart = combined.start
+    entry.shiftEnd = combined.end
+  }
+  entry.segments.push({
+    start: bounds.start,
+    end: bounds.end,
+    timeline: buildTourTimeline(publicTourToComplianceInput(tour)),
+  })
+}
 
 export async function loadDriverWeekDriving(
   driverId: string,
   date: string,
   excludeTourId?: string,
-): Promise<{ weekDays: DriverDayDriving[]; previousWeekDrivingMinutes: number }> {
+): Promise<{
+  weekDays: DriverDayDriving[]
+  previousWeekDrivingMinutes: number
+  previousDay: DriverDayDriving | null
+}> {
   const weekKey = getIsoWeekKey(date)
   const weekDates = getWeekDates(weekKey)
   const prevWeekDates = getWeekDates(getAdjacentWeekKey(weekKey, -1))
@@ -54,9 +96,11 @@ export async function loadDriverWeekDriving(
 
   const dayMap = new Map<string, DriverDayDriving>()
   for (const d of weekDates) {
-    dayMap.set(d, { date: d, drivingMinutes: 0, workMinutes: 0, tourIds: [] })
+    dayMap.set(d, emptyDriverDay(d))
   }
 
+  const previousDate = addDays(date, -1)
+  const previousDay = emptyDriverDay(previousDate)
   let previousWeekDrivingMinutes = 0
 
   for (const row of rows) {
@@ -66,18 +110,20 @@ export async function loadDriverWeekDriving(
     const work = calculateTourWorkMinutes(publicTour.stops)
 
     if (weekDates.includes(row.date)) {
-      const entry = dayMap.get(row.date)!
-      entry.drivingMinutes += driving
-      entry.workMinutes += work
-      entry.tourIds.push(row.id)
+      addTourToDriverDay(dayMap.get(row.date)!, publicTour, driving, work)
     } else if (prevWeekDates.includes(row.date)) {
       previousWeekDrivingMinutes += driving
+    }
+
+    if (row.date === previousDate) {
+      addTourToDriverDay(previousDay, publicTour, driving, work)
     }
   }
 
   return {
     weekDays: [...dayMap.values()],
     previousWeekDrivingMinutes,
+    previousDay: previousDay.shiftEnd ? previousDay : null,
   }
 }
 

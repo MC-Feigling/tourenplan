@@ -1,5 +1,5 @@
 import { diffMinutes } from '../utils/time'
-import type { ComplianceTimelineEvent, TourComplianceInput } from './types'
+import type { ComplianceTimelineEvent, DriverDaySegment, TourComplianceInput } from './types'
 
 export function buildTourTimeline(tour: TourComplianceInput): ComplianceTimelineEvent[] {
   const events: ComplianceTimelineEvent[] = []
@@ -24,11 +24,65 @@ export function buildTourTimeline(tour: TourComplianceInput): ComplianceTimeline
 export function calculateTourWorkMinutes(
   stops: TourComplianceInput['stops'],
 ): number {
-  if (stops.length === 0) return 0
+  const bounds = getTourShiftBounds(stops)
+  if (!bounds) return 0
+  return Math.max(diffMinutes(bounds.start, bounds.end), 0)
+}
+
+export function getTourShiftBounds(
+  stops: TourComplianceInput['stops'],
+): { start: string; end: string } | null {
+  if (stops.length === 0) return null
   const first = stops[0]
   const last = stops[stops.length - 1]
-  if (!first || !last) return 0
-  return Math.max(diffMinutes(first.plannedArrival, last.plannedDeparture), 0)
+  if (!first || !last) return null
+  return { start: first.plannedArrival, end: last.plannedDeparture }
+}
+
+export function combineShiftBounds(
+  a: { start: string; end: string } | null,
+  b: { start: string; end: string } | null,
+): { start: string; end: string } | null {
+  if (!a) return b
+  if (!b) return a
+  return {
+    start: a.start < b.start ? a.start : b.start,
+    end: a.end > b.end ? a.end : b.end,
+  }
+}
+
+export function mergeDayTimeline(
+  segments: DriverDaySegment[],
+  current: DriverDaySegment,
+): ComplianceTimelineEvent[] {
+  const ordered = [...segments, current].sort((a, b) => a.start.localeCompare(b.start))
+  const events: ComplianceTimelineEvent[] = []
+
+  for (let i = 0; i < ordered.length; i++) {
+    const segment = ordered[i]
+    if (!segment) continue
+    if (i > 0) {
+      const previous = ordered[i - 1]
+      if (previous) {
+        const gap = diffMinutes(previous.end, segment.start)
+        if (gap > 0) events.push({ type: 'break', minutes: gap })
+      }
+    }
+    events.push(...segment.timeline)
+  }
+
+  return events
+}
+
+export function restMinutesBetween(
+  fromDate: string,
+  fromTime: string,
+  toDate: string,
+  toTime: string,
+): number {
+  const from = new Date(`${fromDate}T${fromTime}:00`)
+  const to = new Date(`${toDate}T${toTime}:00`)
+  return Math.round((to.getTime() - from.getTime()) / 60_000)
 }
 
 export function getIsoWeekKey(date: string): string {
