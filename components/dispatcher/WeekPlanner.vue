@@ -177,7 +177,28 @@ async function onSidebarUnassign(payload: {
       :tone="assignmentActions.feedbackTone.value === 'error' ? 'error' : 'success'"
     />
 
+    <UiEmptyState
+      v-if="tours.length === 0"
+      title="Keine Touren in dieser Woche"
+      description="Generiere Linien oder lege einen Ausflug an."
+    >
+      <template #icon>
+        <svg class="h-7 w-7 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+        </svg>
+      </template>
+      <template #action>
+        <div class="flex flex-wrap justify-center gap-2">
+          <UButton to="/dispatcher/lines" variant="ghost" color="neutral">Linien</UButton>
+          <UButton :to="`/dispatcher/tours/new?date=${selectedDate || weekStart}`" color="primary">
+            + Ausflug
+          </UButton>
+        </div>
+      </template>
+    </UiEmptyState>
+
     <DispatcherWeekPlannerGrid
+      v-if="tours.length > 0"
       :overview="overview"
       :selected-date-label="selectedDateLabel"
       :week-days="weekDays"

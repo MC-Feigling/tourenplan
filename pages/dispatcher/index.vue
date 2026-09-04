@@ -37,7 +37,7 @@ useHead({ title: 'Disposition' })
   <div class="space-y-6">
     <AdminPageHeader title="Disposition" description="Wochenplan — Linien und Ausflüge" />
 
-    <div v-if="isInitialLoading" class="text-sm text-slate-400">Laden…</div>
+    <DispatcherWeekPlannerSkeleton v-if="isInitialLoading" />
 
     <div
       v-else-if="error || toursApiError"
