@@ -49,6 +49,13 @@ async function onLogout() {
 
       <div v-if="auth.user" class="flex items-center gap-3">
         <span class="hidden text-xs text-slate-400 sm:block">{{ auth.user.displayName }}</span>
+        <NuxtLink
+          to="/account"
+          class="rounded-lg px-3 py-2 text-sm text-slate-300 no-underline transition-colors hover:bg-white/5 hover:text-white"
+          active-class="!bg-white/10 !text-white"
+        >
+          Konto
+        </NuxtLink>
         <UButton variant="ghost" color="neutral" size="xs" @click="onLogout">
           Abmelden
         </UButton>
