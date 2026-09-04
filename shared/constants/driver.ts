@@ -15,6 +15,11 @@ export const DRIVER_STATUS_ACTION_LABELS: Partial<Record<TourStatus, string>> = 
   active: 'Tour abschließen',
 }
 
+export const DRIVER_STATUS_SUCCESS_LABELS: Partial<Record<TourStatus, string>> = {
+  active: 'Tour gestartet',
+  completed: 'Tour abgeschlossen',
+}
+
 export function canDriverTransitionStatus(current: TourStatus, next: TourStatus): boolean {
   const allowed = DRIVER_STATUS_TRANSITIONS[current] ?? []
   return allowed.includes(next)

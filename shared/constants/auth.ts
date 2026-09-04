@@ -14,3 +14,13 @@ export const PRODUCTION_FORBIDDEN_BOOTSTRAP_PASSWORDS = [
   'changeme',
   'admin',
 ] as const
+
+export const CHANGE_PASSWORD_MIN_LENGTH = 8
+
+export const AUTH_MESSAGES = {
+  changePasswordSuccess: 'Passwort geändert',
+  wrongCurrentPassword: 'Aktuelles Passwort ist falsch',
+  passwordTooShort: 'Neues Passwort zu kurz',
+  passwordUnchanged: 'Neues Passwort muss sich unterscheiden',
+  changePasswordFailed: 'Passwort konnte nicht geändert werden',
+} as const
