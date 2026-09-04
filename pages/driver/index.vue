@@ -28,6 +28,13 @@ const upcomingTours = computed(() =>
   tours.value.filter((tour) => tour.date !== today).sort((a, b) => a.date.localeCompare(b.date)),
 )
 
+const nextTourDate = computed(() => {
+  const future = tours.value
+    .filter((tour) => tour.date > today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+  return future[0]?.date ?? null
+})
+
 const toursByDate = computed(() => {
   const map = new Map<string, typeof tours.value>()
   for (const tour of upcomingTours.value) {
@@ -37,8 +44,6 @@ const toursByDate = computed(() => {
   }
   return map
 })
-
-const nextTourDate = computed(() => upcomingTours.value[0]?.date ?? null)
 
 const nextTourDateLabel = computed(() => {
   if (!nextTourDate.value) return null

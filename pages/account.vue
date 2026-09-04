@@ -11,6 +11,8 @@ definePageMeta({
 
 const auth = useAuthStore()
 
+setPageLayout(auth.user?.role === 'driver' ? 'driver' : 'default')
+
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -23,7 +25,7 @@ async function onSubmit() {
   successMessage.value = null
 
   if (newPassword.value !== confirmPassword.value) {
-    errorMessage.value = 'Passwörter stimmen nicht überein'
+    errorMessage.value = AUTH_MESSAGES.passwordMismatch
     return
   }
   if (newPassword.value.length < CHANGE_PASSWORD_MIN_LENGTH) {

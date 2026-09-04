@@ -22,5 +22,6 @@ export const AUTH_MESSAGES = {
   wrongCurrentPassword: 'Aktuelles Passwort ist falsch',
   passwordTooShort: 'Neues Passwort zu kurz',
   passwordUnchanged: 'Neues Passwort muss sich unterscheiden',
+  passwordMismatch: 'Passwörter stimmen nicht überein',
   changePasswordFailed: 'Passwort konnte nicht geändert werden',
 } as const

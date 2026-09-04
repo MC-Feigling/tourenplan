@@ -2,6 +2,7 @@
 </script>
 
 <template>
+  <p class="sr-only" role="status">Laden…</p>
   <div class="space-y-6 animate-pulse" aria-hidden="true">
     <div class="flex items-center justify-between gap-4">
       <div class="h-8 w-48 rounded-lg bg-white/10" />

@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-import { ZodError } from 'zod'
 import { AUTH_MESSAGES } from '../../../shared/constants/auth'
 import { changePasswordBodySchema } from '../../../shared/schemas/auth'
 import { users } from '../../database/schema'
@@ -17,25 +16,22 @@ export default defineEventHandler(async (event) => {
 
   const row = await requireUserRow(event)
 
-  let body: { currentPassword: string; newPassword: string }
-  try {
-    body = await readValidatedBody(event, (raw) => changePasswordBodySchema.parse(raw))
-  } catch (error) {
-    if (error instanceof ZodError) {
-      const code = error.issues[0]?.message
-      if (code === 'password_unchanged') {
-        throw createError({
-          statusCode: 400,
-          statusMessage: AUTH_MESSAGES.passwordUnchanged,
-        })
-      }
+  const raw = await readBody(event)
+  const parsed = changePasswordBodySchema.safeParse(raw)
+  if (!parsed.success) {
+    const code = parsed.error.issues[0]?.message
+    if (code === 'password_unchanged') {
       throw createError({
         statusCode: 400,
-        statusMessage: AUTH_MESSAGES.passwordTooShort,
+        statusMessage: AUTH_MESSAGES.passwordUnchanged,
       })
     }
-    throw error
+    throw createError({
+      statusCode: 400,
+      statusMessage: AUTH_MESSAGES.passwordTooShort,
+    })
   }
+  const body = parsed.data
 
   if (!rateLimitAllow('auth', `change-pw-user:${row.id}`)) {
     throw createError({ statusCode: 429, statusMessage: 'Too many requests' })

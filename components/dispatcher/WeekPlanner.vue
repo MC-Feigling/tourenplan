@@ -215,7 +215,11 @@ async function onSidebarUnassign(payload: {
       <template #action>
         <div class="flex flex-wrap justify-center gap-2">
           <UButton to="/dispatcher/lines" variant="ghost" color="neutral">Linien</UButton>
-          <UButton :to="`/dispatcher/tours/new?date=${selectedDate || weekStart}`" color="primary">
+          <UButton
+            v-if="canEdit"
+            :to="`/dispatcher/tours/new?date=${selectedDate || weekStart}`"
+            color="primary"
+          >
             + Ausflug
           </UButton>
         </div>
