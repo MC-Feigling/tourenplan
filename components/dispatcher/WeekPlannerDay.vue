@@ -13,6 +13,7 @@ defineProps<{
   assigningTourId: string | null
   tapMode: AssignmentDragKind | null
   selectedResourceId: string | null
+  highlightedTourIds: Set<string>
 }>()
 
 const emit = defineEmits<{
@@ -62,6 +63,7 @@ const emit = defineEmits<{
         :assigning="assigningTourId === tour.id"
         :tap-mode="tapMode"
         :selected-resource-id="selectedResourceId"
+        :highlighted="highlightedTourIds.has(tour.id)"
         @assign="emit('assign', $event)"
         @unassign="emit('unassign', $event)"
         @tap-assign="emit('tapAssign', $event)"

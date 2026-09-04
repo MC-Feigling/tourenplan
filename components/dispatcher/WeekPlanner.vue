@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AssignmentDragKind } from '~/shared/assignment/dragPayload'
+import { aggregateWeekConflicts } from '~/shared/assignment/weekConflicts'
 import type { AssignmentResources } from '~/shared/assignment/weekSummary'
 import type { PublicTour } from '~/shared/types/tours'
 
@@ -31,6 +32,22 @@ const selectedDate = ref('')
 const tapMode = ref<AssignmentDragKind | null>(null)
 const selectedResourceId = ref<string | null>(null)
 const pendingTodaySelect = ref(false)
+const highlightConflicts = ref(false)
+
+const weekConflicts = computed(() =>
+  aggregateWeekConflicts(props.tours, props.assignmentResources),
+)
+
+const conflictDateLabels = computed(() =>
+  weekConflicts.value.dates.map((date) => {
+    const day = props.weekDays.find((item) => item.date === date)
+    return day?.label?.slice(0, 2) ?? date.slice(5)
+  }),
+)
+
+const highlightedTourIds = computed(() =>
+  highlightConflicts.value ? new Set(weekConflicts.value.tourIds) : new Set<string>(),
+)
 
 const { overview, initSelectedDate } = useResourceAvailability({
   tours: toursRef,
@@ -177,6 +194,14 @@ async function onSidebarUnassign(payload: {
       :tone="assignmentActions.feedbackTone.value === 'error' ? 'error' : 'success'"
     />
 
+    <DispatcherWeekConflictSummary
+      v-if="tours.length > 0"
+      :count="weekConflicts.count"
+      :date-labels="conflictDateLabels"
+      :active="highlightConflicts"
+      @toggle="highlightConflicts = !highlightConflicts"
+    />
+
     <UiEmptyState
       v-if="tours.length === 0"
       title="Keine Touren in dieser Woche"
@@ -210,6 +235,7 @@ async function onSidebarUnassign(payload: {
       :assigning-tour-id="assignmentActions.assigningTourId.value"
       :tap-mode="tapMode"
       :selected-resource-id="selectedResourceId"
+      :highlighted-tour-ids="highlightedTourIds"
       @select-resource="onSelectResource"
       @sidebar-unassign="onSidebarUnassign"
       @select-day="selectDay"
