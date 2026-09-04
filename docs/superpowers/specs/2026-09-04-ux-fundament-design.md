@@ -1,7 +1,7 @@
 # Tourenplan — UX-Fundament Quick Wins
 
 **Datum:** 2026-09-04  
-**Status:** Draft (pending user review)  
+**Status:** Implemented  
 **Branch:** `cursor/ux-fundament-design-06c0`
 
 ## Kontext
