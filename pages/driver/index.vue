@@ -82,7 +82,7 @@ useHead({ title: 'Meine Touren' })
           <DriverTourCard v-for="tour in todayTours" :key="tour.id" :tour="tour" />
         </div>
         <UiEmptyState
-          v-else
+          v-else-if="tours.length"
           title="Heute keine Tour"
           :description="nextTourDateLabel
             ? `Nächste Tour: ${nextTourDateLabel}`
