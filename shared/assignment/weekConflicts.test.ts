@@ -23,7 +23,7 @@ function stop(overrides: Partial<PublicTour['stops'][0]> = {}): PublicTour['stop
 function tour(overrides: Partial<PublicTour> & { id: string; date: string }): PublicTour {
   return {
     depotId: null,
-    type: 'occasional',
+    type: 'excursion',
     name: overrides.name ?? overrides.id,
     status: 'assigned',
     complianceProfile: 'STANDARD_561_2006',
