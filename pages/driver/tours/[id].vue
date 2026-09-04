@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { COMPLIANCE_PROFILE_LABELS } from '~/shared/constants/compliance'
+import { DRIVER_STATUS_SUCCESS_LABELS } from '~/shared/constants/driver'
 import { TOUR_TYPE_LABELS, TOUR_STATUS_LABELS } from '~/shared/constants/tours'
 import { minutesToRoundedHours } from '~/shared/utils/time'
 import type { TourStopFormRow } from '~/composables/useToursApi'
@@ -15,6 +16,7 @@ const api = useDriverApi()
 
 const id = computed(() => route.params.id as string)
 const actionError = ref<string | null>(null)
+const successMessage = ref<string | null>(null)
 const acting = ref(false)
 
 const { data, pending, error } = await useAsyncData(
@@ -45,10 +47,13 @@ useHead({ title: pageTitle })
 async function onStatusAction() {
   if (!tour.value || !nextStatus.value) return
   actionError.value = null
+  successMessage.value = null
   acting.value = true
   try {
-    const res = await api.updateStatus(tour.value.id, nextStatus.value)
+    const target = nextStatus.value
+    const res = await api.updateStatus(tour.value.id, target)
     data.value = res
+    successMessage.value = DRIVER_STATUS_SUCCESS_LABELS[target] ?? 'Status aktualisiert'
   } catch {
     actionError.value = api.error.value
   } finally {
@@ -92,6 +97,14 @@ async function onStatusAction() {
         variant="subtle"
         :title="actionError"
         role="alert"
+      />
+
+      <UAlert
+        v-if="successMessage"
+        color="success"
+        variant="subtle"
+        :title="successMessage"
+        role="status"
       />
 
       <div class="grid gap-3 sm:grid-cols-2">
