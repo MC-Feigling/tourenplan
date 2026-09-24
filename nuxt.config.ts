@@ -67,6 +67,7 @@ export default defineNuxtConfig({
     },
     devOptions: {
       enabled: true,
+      suppressWarnings: true,
     },
   },
   app: {
